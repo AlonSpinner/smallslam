@@ -20,7 +20,7 @@ class robot:
         self.odometrey_noise = odometrey_noise
         self.rgbd_noise = rgbd_noise
 
-    def moveAndMeasure(self,odom): 
+    def moveAndMeasureOdometrey(self,odom): 
         #odom = [dr,dtheta]
         #we formulate discrete state without velocities
         self.pose[2] += odom[1] #add dtheta 

@@ -34,7 +34,7 @@ class map:
     #goes over all landmarks to find classLabels. semantics is a list of unique classLabels
     def defineSemanticsFromLandmarks(self):
         if self.landmarks: #not empty
-            classLabels = [lm['classLabel'] for lm in self.landmarks]
+            classLabels = [lm.classLabel for lm in self.landmarks]
             semantics = list(set(classLabels))
             if len(semantics) > 10:
                 raise TypeError("no more than 10 classes are premited. Not enough distinguishable markers in matplotlib")
@@ -42,7 +42,7 @@ class map:
 
     def indexifyLandmarks(self):
         for ii in range(len(self.landmarks)):
-                self.landmarks[ii]["index"] = ii
+                self.landmarks[ii].index = ii
 
     def plot(self,ax = None, plotIndex = False, plotCov = False):
         if ax == None:
@@ -52,18 +52,18 @@ class map:
             ax.set_aspect('equal'); ax.grid()
 
         for lm in self.landmarks:
-            ii = self.semantics.index(lm["classLabel"]) #index of classLabel in semantics. used for shape and color
-            ax.scatter(lm["x"],lm["y"],
+            ii = self.semantics.index(lm.classLabel) #index of classLabel in semantics. used for shape and color
+            ax.scatter(lm.x,lm.y,
                 marker = self.markersList[ii],
                 c = self.colors[ii].reshape(1,-1) #reshape to prevent warnning. scatter wants 2D array
                 )
             if plotIndex:    
-                ax.text(lm["x"],lm["y"],lm["index"])
+                ax.text(lm.x,lm.y,lm.index)
 
             if plotCov:
-                if "cov" not in lm.keys():
+                if not len(lm.cov): #if is empty
                     raise TypeError("landmark has no covaraince key")
-                self.plot_cov_ellipse(lm["cov"],(lm["x"],lm["y"]),nstd = 1,ax = ax,edgecolor=self.colors[ii].reshape(1,-1))
+                self.plot_cov_ellipse(lm.cov,(lm.x,lm.y),nstd = 1,ax = ax,edgecolor=self.colors[ii].reshape(1,-1))
 
     #define color for each classLabel.
     @staticmethod 
@@ -113,6 +113,14 @@ class map:
         ax.add_artist(ellip)
         return ellip
 
+class landmark: #need to work on this later... switch landmark dictionary representation to class
+    def __init__(self,x = 0, y = 0, classLabel = 'clutter', cov = [], index = []):
+        self.x = x
+        self.y = y
+        self.classLabel = classLabel
+        self.cov = cov
+        self.index = index
+        return
 
 
     

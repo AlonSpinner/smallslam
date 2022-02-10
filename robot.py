@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as ptch
 
 class robot:
     def __init__(self,odometrey_noise = None, rgbd_noise = None):
+        #input assumptions
         if odometrey_noise == None:
             odometrey_noise = np.zeros((2,2))
             odometrey_noise[0,0] = 0.1**2 #tangent noise
@@ -13,13 +15,19 @@ class robot:
             rgbd_noise[0,0] = 0.01**2 #depth noise
             rgbd_noise[1,1] = np.radians(1)**2 #angular noise
 
+        #starting location
         self.pose = np.array([0.0,
                     0.0,
                     0.0]) # pose of robot [x,y,theta]
-        self.FOV = np.radians(90.0)
+        #sensor physics
+        self.FOV = np.radians(60.0)
         self.range = 1.0 #m
         self.odometrey_noise = odometrey_noise
         self.rgbd_noise = rgbd_noise
+        
+        #place holder for graphic handles
+        self.graphic_rgbd = []
+        self.graphic_car = []
 
     def moveAndMeasureOdometrey(self,odom): 
         #odom = [dr,dtheta]
@@ -51,6 +59,24 @@ class robot:
     def odomModel(self,odom):
         meas_dr, meas_dtheta = np.random.multivariate_normal(odom, self.odometrey_noise)
         return meas_odom(meas_dr,meas_dtheta) #dr,dtheta. same format as input
+
+    def plot(self,ax = None, plotCov = False):
+        if ax == None and not self.graphic_car: #no ax given, and car was not plotted before
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.set_xlabel('x'); ax.set_ylabel('y'); 
+            ax.set_aspect('equal'); ax.grid()
+
+        phi = np.linspace(self.pose[2]-self.FOV/2,self.pose[2]+self.FOV/2,10)
+        p = self.range * np.array([np.cos(phi),np.sin(phi)]).T + self.pose[:2]
+        xy = np.vstack((self.pose[:2],p))
+
+        if self.graphic_car: #car was plotted before
+            self.graphic_car.set_offsets(self.pose[:2]) #https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
+            self.graphic_rgbd.set_xy(xy)  #https://stackoverflow.com/questions/38341722/animation-to-translate-polygon-using-matplotlib
+        else:
+            self.graphic_car = ax.scatter(self.pose[0],self.pose[1],s = 200, c = 'k', marker = 'o')
+            self.graphic_rgbd, = ax.fill(xy[:,0],xy[:,1], facecolor = "b" , alpha=0.1, animated = False)
 
 class meas_landmark:
     # data container

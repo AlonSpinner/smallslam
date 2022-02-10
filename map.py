@@ -44,7 +44,7 @@ class map:
         for ii in range(len(self.landmarks)):
                 self.landmarks[ii]["index"] = ii
 
-    def plot(self,ax = None, plotIndex = False, plotCov = True):
+    def plot(self,ax = None, plotIndex = False, plotCov = False):
         if ax == None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
@@ -61,8 +61,9 @@ class map:
                 ax.text(lm["x"],lm["y"],lm["index"])
 
             if plotCov:
+                if "cov" not in lm.keys():
+                    raise TypeError("landmark has no covaraince key")
                 self.plot_cov_ellipse(lm["cov"],(lm["x"],lm["y"]),nstd = 1,ax = ax,edgecolor=self.colors[ii].reshape(1,-1))
-
 
     #define color for each classLabel.
     @staticmethod 

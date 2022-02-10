@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as ptch
 
 class robot:
-    def __init__(self,odometrey_noise = None, rgbd_noise = None):
+    def __init__(self,odometrey_noise = None, rgbd_noise = None, ax = None):
         #input assumptions
         if odometrey_noise == None:
             odometrey_noise = np.zeros((2,2))
@@ -28,6 +28,9 @@ class robot:
         #place holder for graphic handles
         self.graphic_rgbd = []
         self.graphic_car = []
+
+        if ax is not None:
+            self.plot(ax)
 
     def moveAndMeasureOdometrey(self,odom): 
         #odom = [dr,dtheta]
@@ -61,6 +64,7 @@ class robot:
         return meas_odom(meas_dr,meas_dtheta) #dr,dtheta. same format as input
 
     def plot(self,ax = None, plotCov = False):
+        #first call to plot should have ax variable included, unless you want to open a new axes.
         if ax == None and not self.graphic_car: #no ax given, and car was not plotted before
             fig = plt.figure()
             ax = fig.add_subplot(111)

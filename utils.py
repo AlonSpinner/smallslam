@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 
+import map
+import robot
+
 def setWorldMap():
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -50,3 +53,48 @@ def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none', **kwargs):
 
         ax.add_artist(ellip)
         return ellip
+
+def default_world():
+    np.random.seed(seed=2) #this is important. affects measuremetns aswell
+
+    #------Build worldmap
+    fig , ax = setWorldMap()
+    N = 15 #number of landmarks
+    semantics = ("table","MEP","chair","pillar")
+    xrange = (-2,2)
+    yrange = (-1,3)
+
+    landmarks = [None] * N
+    for ii in range(N):
+        landmarks[ii] = map.landmark(x = (np.random.rand()-0.5) * np.diff(xrange) + np.mean(xrange),
+                                    y = (np.random.rand()-0.5) * np.diff(yrange) + np.mean(yrange),
+                                    classLabel = np.random.choice(semantics),
+                                )
+
+    worldMap = map.map(landmarks)
+    worldMap.plot(ax = ax, plotIndex = True,plotCov = False)
+
+    #------Spawn Robot
+    car = robot.robot(ax = ax)
+    car.range = 2
+    
+    return car, worldMap, ax, fig
+
+def default_parameters():
+    #dictionary form
+    
+    odom = {
+            "dr": 0.4,
+            "dtheta": 0.4,
+            }
+
+    time = {
+            "dt": 0.5,
+            "timeFinal": 10,
+            }
+
+    prms = {
+            "odom": odom,
+            "time": time,
+            }
+    return prms

@@ -6,6 +6,16 @@ class map:
 
     #class attributes
     markersList = ["o","v","s","D","4","*",">","<","2","P"] #10 classes max
+    colors = np.array([[0.244972, 0.287675, 0.53726 , 1.      ],
+       [0.709898, 0.868751, 0.169257, 1.      ],
+       [0.147607, 0.511733, 0.557049, 1.      ],
+       [0.993248, 0.906157, 0.143936, 1.      ],
+       [0.281412, 0.155834, 0.469201, 1.      ],
+       [0.20803 , 0.718701, 0.472873, 1.      ],
+       [0.430983, 0.808473, 0.346476, 1.      ],
+       [0.190631, 0.407061, 0.556089, 1.      ],
+       [0.267004, 0.004874, 0.329415, 1.      ],
+       [0.119699, 0.61849 , 0.536347, 1.      ]])
     
     def __init__(self,landmarks = []):
         '''
@@ -20,9 +30,6 @@ class map:
         #instance attributes
         self.landmarks = []
         self.addLandmarks(landmarks)
-        
-        #wannabe class attribute 
-        self.colors = self.randomColors('viridis',len(self.markersList))
 
     def addLandmarks(self,landmarks):
         self.landmarks.extend(landmarks)
@@ -66,6 +73,9 @@ class map:
     #define color for each classLabel.
     @staticmethod 
     def randomColors(mapname,N):
+        #function out of use 
+
+        # before hard coded colors, was initalized with: self.colors = self.randomColors('viridis',len(self.markersList))
         np.random.seed(seed=0) #ensure colors-labels are the same for each map 
         return np.random.permutation(plt.cm.get_cmap(mapname,N).colors) #permuate to make colors more distinguishable if not alot of classes are used    
 

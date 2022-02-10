@@ -30,11 +30,11 @@ class robot:
         meas_odom = np.random.multivariate_normal(odom, self.odometrey_noise)
         return meas_odom #dr,dtheta. same format as input
     
-    def measureLandmarks(self,world):
+    def measureLandmarks(self,worldmap):
             #world - list of semanticly labled landmarks: [[L1_x,L1_y,L1_class],...]
             measurement = []
-            for lm in world:
-                gt_dx , gt_dy = lm[0]-self.pose[0], lm[1]-self.pose[1]
+            for lm in worldmap.landmarks:
+                gt_dx , gt_dy = lm["x"]-self.pose[0], lm["y"]-self.pose[1]
                 gt_r = (gt_dx**2 + gt_dy**2)**0.5
                 gt_angle = np.arctan2(gt_dy,gt_dx)
                 if gt_angle < self.FOV/2 and (gt_r < self.range):

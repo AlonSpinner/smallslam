@@ -172,6 +172,7 @@ def Pose2SLAM_ISAM2_example():
     
     plt.ioff()
     plt.show()
+    plt.pause(0.2)
 
 
 if __name__ == "__main__":

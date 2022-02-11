@@ -84,20 +84,21 @@ class robot:
 
 class meas_landmark:
     # data container
-    def __init__(self,r = 0, angle = 0, classLabel = 'clutter', index = []):
-        self.r = r
+    def __init__(self,range = 0, angle = 0, classLabel = 'clutter', index = [], cov = []):
+        self.range = range
         self.angle = angle
         self.classLabel = classLabel
         self.index = index
+        self.cov = cov
 
 class meas_odom:
     # data container
-    def __init__(self, dr = 0, dtheta = 0):
+    def __init__(self, dr = 0, dtheta = 0, cov = []):
             self.dr = dr
             self.dtheta = dtheta
+            self.cov = cov
 
     def toNumpy(self):
         return np.array([self.dr,self.dtheta].squeeze())
-
     
 

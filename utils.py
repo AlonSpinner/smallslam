@@ -1,17 +1,10 @@
+from tkinter import N
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 
 import map
 import robot
-
-def setWorldMap():
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xlim(-2,2); ax.set_ylim(-1,3); 
-    ax.set_xlabel('x'); ax.set_ylabel('y'); 
-    ax.set_aspect('equal'); ax.grid()
-    return fig, ax
 
 def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none', **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals
@@ -53,6 +46,14 @@ def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none', **kwargs):
 
         ax.add_artist(ellip)
         return ellip
+
+def setWorldMap():
+    fig = plt.figure(num = 0)
+    ax = fig.add_subplot(111)
+    ax.set_xlim(-2,2); ax.set_ylim(-1,3); 
+    ax.set_xlabel('x'); ax.set_ylabel('y'); 
+    ax.set_aspect('equal'); ax.grid()
+    return fig, ax
 
 def default_world():
     np.random.seed(seed=2) #this is important. affects measuremetns aswell

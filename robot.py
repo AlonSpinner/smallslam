@@ -60,8 +60,8 @@ class robot:
             return meas_landmark(dr,dangle,lm.classLabel,lm.index)
 
     def odomModel(self,odom):
-        meas_dr, meas_dtheta = np.random.multivariate_normal(odom, self.odometrey_noise)
-        return meas_odom(meas_dr,meas_dtheta) #dr,dtheta. same format as input
+        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometrey_noise)
+        return meas_odom(meas_dx,meas_dy,meas_dtheta)
 
     def plot(self,ax = None, plotCov = False):
         #first call to plot should have ax variable included, unless you want to open a new axes.
@@ -93,8 +93,9 @@ class meas_landmark:
 
 class meas_odom:
     # data container
-    def __init__(self, dr = 0, dtheta = 0, cov = []):
-            self.dr = dr
+    def __init__(self, dx = 0, dy = 0, dtheta = 0, cov = []):
+            self.dx = dx
+            self.dy = dy
             self.dtheta = dtheta
             self.cov = cov
 

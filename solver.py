@@ -13,7 +13,7 @@ class solver:
         if X0 is None:
             X0 = (0,0,0)
         if X0cov is None:
-            cov = 0.1* np.eye(3)
+            cov = 0.001* np.eye(3)
 
         #initalize solver
         self.graph = gtsam.NonlinearFactorGraph()
@@ -87,10 +87,9 @@ class solver:
         for graphic in self.graphics_landmarks:
             graphic.remove()
 
-        kk = 0
-        while self.current_estimate.exists(L(kk)):
-            cov = marginals.marginalCovariance(L(kk))
-            loc = self.current_estimate.atPoint2(L(kk))
+        self.graphics_landmarks = []
+        for lm_index in self.seen_landmarks:
+            cov = marginals.marginalCovariance(L(lm_index))
+            loc = self.current_estimate.atPoint2(L(lm_index))
             self.graphics_landmarks.append(utils.plot_cov_ellipse(cov,loc,ax = self.ax))
-            kk +=1
 

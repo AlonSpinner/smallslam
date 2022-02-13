@@ -61,8 +61,8 @@ class robot:
         if (gt_angle > -self.FOV/2 and gt_angle < +self.FOV/2) \
              and (gt_r < self.range): #if viewed, compute noisy measurement
             mu = np.array([gt_r,gt_angle]).squeeze() #must be 1D numpy array
-            dr, dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
-            return meas_landmark(dr,dangle,lm.classLabel,lm.index, self.rgbd_noise)
+            meas_dr, meas_dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
+            return meas_landmark(meas_dr,meas_dangle,lm.classLabel,lm.index, self.rgbd_noise)
 
     def odomModel(self,odom):
         meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometry_noise)

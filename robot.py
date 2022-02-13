@@ -100,8 +100,5 @@ class meas_odom:
             self.dy = dy
             self.dtheta = dtheta
             self.cov = cov
-
-    def toNumpy(self):
-        return np.array([self.dr,self.dtheta].squeeze())
     
 

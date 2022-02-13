@@ -57,7 +57,7 @@ def setWorldMap():
     return fig, ax
 
 def default_world():
-    np.random.seed(seed=2) #this is important. affects measuremetns aswell
+    np.random.seed(seed=2) #this is important. affects measurements aswell
 
     #------Build worldmap
     fig , ax = setWorldMap()

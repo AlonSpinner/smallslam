@@ -53,9 +53,11 @@ class robot:
             return measurements
 
     def rgbdMeasModel(self,lm):
-        gt_dx , gt_dy = lm.x-self.pose[0], lm.y-self.pose[1]
-        gt_r = (gt_dx**2 + gt_dy**2)**0.5
-        gt_angle = np.arctan2(gt_dy,gt_dx)
+        gt_lm_ego = self.world2Ego(np.hstack((lm.x,lm.y)))
+
+        gt_angle = np.arctan2(gt_lm_ego[1],gt_lm_ego[0])
+        gt_r = np.linalg.norm(gt_lm_ego)
+
         if (gt_angle > -self.FOV/2 and gt_angle < +self.FOV/2) \
              and (gt_r < self.range): #if viewed, compute noisy measurement
             mu = np.array([gt_r,gt_angle]).squeeze() #must be 1D numpy array
@@ -66,7 +68,7 @@ class robot:
         meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometry_noise)
         return meas_odom(meas_dx,meas_dy,meas_dtheta, self.odometry_noise)
 
-    def plot(self,ax = None, plotCov = False):
+    def plot(self,ax = None):
         #first call to plot should have ax variable included, unless you want to open a new axes.
         if ax == None and not self.graphic_car: #no ax given, and car was not plotted before
             fig = plt.figure()
@@ -84,6 +86,14 @@ class robot:
         else:
             self.graphic_car = ax.scatter(self.pose[0],self.pose[1],s = 200, c = 'k', marker = 'o')
             self.graphic_rgbd, = ax.fill(xy[:,0],xy[:,1], facecolor = "b" , alpha=0.1, animated = False)
+
+    def world2Ego(self,xyWorld):
+        theta = self.pose[2]
+        Rworld2robot = np.array([[np.cos(-theta),-np.sin(-theta)],
+                        [np.sin(-theta),np.cos(-theta)]])
+        xyRobot = Rworld2robot @ (xyWorld - self.pose[:2])
+        return xyRobot
+        
 
 class meas_landmark:
     # data container

@@ -5,34 +5,48 @@ from robot import meas_odom
 from robot import meas_landmark
 import gtsam.utils.plot as gtsam_plot
 import matplotlib.pyplot as plt
+import utils
 
 class solver:
     
-    def __init__(self):
+    def __init__(self,X0 = None,X0cov = None, ax = None):
+        if X0 is None:
+            X0 = (0,0,0)
+        if X0cov is None:
+            cov = 0.1* np.eye(3)
+
+        #initalize solver
         self.graph = gtsam.NonlinearFactorGraph()
         self.initial_estimate = gtsam.Values()
-        
-        parameters = gtsam.ISAM2Params()
-        parameters.setRelinearizeThreshold(0.1)
-        #parameters.relinearizeSkip = 1 #doesnt work in my version of gtsam? should be setRelinearizeSkip? https://11187901375483992154.googlegroups.com/attach/3dde15f735496/sample.py?part=0.1&view=1&vt=ANaJVrGdeX_f8IFLF79358ZbSwCtgO6VOunOP2ZY6bSWzpjOHPOyvEvfcByKCCZDJm70YKtFyov_cxWbY67fsKT8XhhkAOSdHQ0VvoHdQ_EMAqR059Oh6XA
-        self.isam2 = gtsam.ISAM2(parameters)
+        self.current_estimate = self.initial_estimate
 
-        X0 = gtsam.Pose2(0,0,0)
-        X0_prior_noise = gtsam.noiseModel.Diagonal.Sigmas(np.array([0.1, 0.1, 0.1]))
-        # prior on X(0) and initial estimate for it
+        #insert X) to initial_estiamte and graph as prior
+        X0 = gtsam.Pose2(X0)
+        X0_prior_noise = gtsam.noiseModel.Gaussian.Covariance(cov)
         self.initial_estimate.insert(X(0), X0)
         self.graph.push_back(gtsam.PriorFactorPose2(X(0), X0, X0_prior_noise))
 
-        self.i = 0 #time index
-        self.current_estimate = self.initial_estimate
-        #self.update() #evaluates current_estimate from priors and adds +1 to i
+        #initalize solver isam2
+        parameters = gtsam.ISAM2Params()
+        parameters.setRelinearizeThreshold(0.1)
+        #parameters.setRelinearizeSkip = 1 #doesnt work in my version of gtsam? should be setRelinearizeSkip? https://11187901375483992154.googlegroups.com/attach/3dde15f735496/sample.py?part=0.1&view=1&vt=ANaJVrGdeX_f8IFLF79358ZbSwCtgO6VOunOP2ZY6bSWzpjOHPOyvEvfcByKCCZDJm70YKtFyov_cxWbY67fsKT8XhhkAOSdHQ0VvoHdQ_EMAqR059Oh6XA
+        self.isam2 = gtsam.ISAM2(parameters)
 
+        #time index
+        self.i = 0 
+
+        #seen_landmarks to avoid initalizing landmarks twice (breaks solver)
         self.seen_landmarks = []
 
-    def update(self):
+        #graphics
+        self.ax = ax #might be None, depending on input
+        self.graphics_landmarks = []
+    def update(self, N=0):
         self.isam2.update(self.graph, self.initial_estimate)
-        self.initial_estimate.clear() #learnt from Pose2ISAM2Example
-        #self.isam2.update() #can be called additional times to perform multiple optimizer iterations
+        for kk in range(N):
+            self.isam2.update() #can be called additional times to perform multiple optimizer iterations
+
+        self.initial_estimate.clear() #inital_estimates only holds guesses for new variables.learnt from Pose2ISAM2Example.
         self.current_estimate = self.isam2.calculateEstimate()
            
     def addOdomMeasurement(self,meas: meas_odom):
@@ -55,7 +69,7 @@ class solver:
                     gtsam.Rot2.fromAngle(meas.angle), meas.range, rgbd_noise)
         self.graph.push_back(factor)
 
-        if meas.index not in self.seen_landmarks: #then add inital_estimate
+        if meas.index not in self.seen_landmarks: #then add landmark to inital_estimate and mark it as seen
             self.seen_landmarks.append(meas.index)
             pose = self.initial_estimate.atPose2(X(self.i))
             dx = meas.range * np.cos(pose.theta()+meas.angle)
@@ -63,6 +77,20 @@ class solver:
             initial_L = gtsam.Point2(pose.x()+dx, pose.y()+dy)
             self.initial_estimate.insert(L(meas.index), initial_L)
 
-    def plot(self):
-        fig = plt.figure
-        gtsam_plot.plot_pose3(self.current_estimate)
+    def plot_landmarks(self):
+        if self.ax is None:
+            raise TypeError("you must provide an axes handle to solver if you want to plot")
+
+        marginals = gtsam.Marginals(self.graph, self.current_estimate)
+
+        #remove old drawings if exist
+        for graphic in self.graphics_landmarks:
+            graphic.remove()
+
+        kk = 0
+        while self.current_estimate.exists(L(kk)):
+            cov = marginals.marginalCovariance(L(kk))
+            loc = self.current_estimate.atPoint2(L(kk))
+            self.graphics_landmarks.append(utils.plot_cov_ellipse(cov,loc,ax = self.ax))
+            kk +=1
+

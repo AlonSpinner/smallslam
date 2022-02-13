@@ -56,7 +56,8 @@ class robot:
         gt_dx , gt_dy = lm.x-self.pose[0], lm.y-self.pose[1]
         gt_r = (gt_dx**2 + gt_dy**2)**0.5
         gt_angle = np.arctan2(gt_dy,gt_dx)
-        if gt_angle < self.FOV/2 and (gt_r < self.range): #if viewed, compute noisy measurement
+        if (gt_angle > -self.FOV/2 and gt_angle < +self.FOV/2) \
+             and (gt_r < self.range): #if viewed, compute noisy measurement
             mu = np.array([gt_r,gt_angle]).squeeze() #must be 1D numpy array
             dr, dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
             return meas_landmark(dr,dangle,lm.classLabel,lm.index, self.rgbd_noise)

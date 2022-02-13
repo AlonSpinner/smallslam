@@ -6,7 +6,7 @@ from matplotlib.patches import Ellipse
 import map
 import robot
 
-def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none', **kwargs):
+def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals
         '''
         Plots an `nstd` sigma error ellipse based on the specified covariance
@@ -42,13 +42,14 @@ def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none', **kwargs):
 
         # Width and height are "full" widths, not radius
         width, height = 2 * nstd * np.sqrt(eigs)
-        ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, facecolor = facecolor, **kwargs)
+        ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, \
+         facecolor = facecolor, edgecolor=edgecolor, **kwargs)
 
         ax.add_artist(ellip)
         return ellip
 
 def setWorldMap():
-    fig = plt.figure(num = 0)
+    fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xlim(-2,2); ax.set_ylim(-1,3); 
     ax.set_xlabel('x'); ax.set_ylabel('y'); 

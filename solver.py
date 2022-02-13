@@ -3,6 +3,8 @@ from gtsam.symbol_shorthand import L, X
 import numpy as np
 from robot import meas_odom
 from robot import meas_landmark
+import gtsam.utils.plot as gtsam_plot
+import matplotlib.pyplot as plt
 
 class solver:
     
@@ -22,12 +24,16 @@ class solver:
         self.graph.push_back(gtsam.PriorFactorPose2(X(0), X0, X0_prior_noise))
 
         self.i = 0 #time index
-        self.update() #evaluates current_estimate from priors and adds +1 to i
+        self.current_estimate = self.initial_estimate
+        #self.update() #evaluates current_estimate from priors and adds +1 to i
+
+        self.seen_landmarks = []
 
     def update(self):
         self.isam2.update(self.graph, self.initial_estimate)
+        self.initial_estimate.clear() #learnt from Pose2ISAM2Example
+        #self.isam2.update() #can be called additional times to perform multiple optimizer iterations
         self.current_estimate = self.isam2.calculateEstimate()
-        self.i += 1
            
     def addOdomMeasurement(self,meas: meas_odom):
         odom_noise = gtsam.noiseModel.Gaussian.Covariance(meas.cov) #https://gtsam.org/doxygen/a03876.html
@@ -48,3 +54,15 @@ class solver:
                     X(self.i), L(meas.index),
                     gtsam.Rot2.fromAngle(meas.angle), meas.range, rgbd_noise)
         self.graph.push_back(factor)
+
+        if meas.index not in self.seen_landmarks: #then add inital_estimate
+            self.seen_landmarks.append(meas.index)
+            pose = self.initial_estimate.atPose2(X(self.i))
+            dx = meas.range * np.cos(pose.theta()+meas.angle)
+            dy = meas.range * np.sin(pose.theta()+meas.angle)
+            initial_L = gtsam.Point2(pose.x()+dx, pose.y()+dy)
+            self.initial_estimate.insert(L(meas.index), initial_L)
+
+    def plot(self):
+        fig = plt.figure
+        gtsam_plot.plot_pose3(self.current_estimate)

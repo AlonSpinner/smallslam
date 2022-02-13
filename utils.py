@@ -84,16 +84,16 @@ def default_world():
 def default_parameters():
     #dictionary form
     
-    odom = {
-            "dr": 0.4,
-            "dtheta": 0.4,
-            }
+    #build sub dictionary odom
+    odom = (0.4,0.4,0.4) #dx,dy,dtheta
 
+    #build sub dictionary time
     time = {
             "dt": 0.5,
             "timeFinal": 10,
             }
 
+    #build prms
     prms = {
             "odom": odom,
             "time": time,

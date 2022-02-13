@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as ptch
 
 class robot:
-    def __init__(self,odometrey_noise = None, rgbd_noise = None, ax = None):
+    def __init__(self,odometry_noise = None, rgbd_noise = None, ax = None):
         #input assumptions
-        if odometrey_noise == None:
-            odometrey_noise = np.zeros((2,2))
-            odometrey_noise[0,0] = 0.1**2 #tangent noise
-            odometrey_noise[1,1] =np.radians(3)**2 #angular noise
+        if odometry_noise == None:
+            odometry_noise = np.zeros((3,3))
+            odometry_noise[0,0] = 0.1**2 #dx noise
+            odometry_noise[1,1] = 0.1**2 #dy noise
+            odometry_noise[2,2] =np.radians(3)**2 #angular noise
 
         if rgbd_noise == None:
             rgbd_noise = np.zeros((2,2))
@@ -22,7 +22,7 @@ class robot:
         #sensor physics
         self.FOV = np.radians(60.0)
         self.range = 1.0 #m
-        self.odometrey_noise = odometrey_noise
+        self.odometry_noise = odometry_noise
         self.rgbd_noise = rgbd_noise
         
         #place holder for graphic handles
@@ -33,12 +33,14 @@ class robot:
             self.plot(ax)
 
     def moveAndMeasureOdometrey(self,odom): 
-        #odom = [dr,dtheta]
-        #we formulate discrete state without velocities
-        self.pose[2] += odom[1] #add dtheta 
-        self.pose[0] += odom[0] * np.cos((self.pose[2])) #add dx
-        self.pose[1] += odom[0] * np.sin((self.pose[2])) #add dy
-        #note: we first rotate and than add translation. Same as in transform matrix. Oren agrees
+        #odom = [dx,dy,dtheta] are in system k, when trasitioning to kp1
+        self.pose[2] += odom[2] #add dtheta 
+        self.pose[0] += odom[0] * np.cos(self.pose[2]) #add dx
+        self.pose[1] += odom[1] * np.sin(self.pose[2])#add dy
+        
+        #note:
+        #first rotate and than add translation. Same as in transform matrix.
+        #easy to understand if you draw this 2D problem.
         return self.odomModel(odom)
     
     def measureLandmarks(self,worldmap):
@@ -57,11 +59,11 @@ class robot:
         if gt_angle < self.FOV/2 and (gt_r < self.range): #if viewed, compute noisy measurement
             mu = np.array([gt_r,gt_angle]).squeeze() #must be 1D numpy array
             dr, dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
-            return meas_landmark(dr,dangle,lm.classLabel,lm.index)
+            return meas_landmark(dr,dangle,lm.classLabel,lm.index, self.rgbd_noise)
 
     def odomModel(self,odom):
-        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometrey_noise)
-        return meas_odom(meas_dx,meas_dy,meas_dtheta)
+        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometry_noise)
+        return meas_odom(meas_dx,meas_dy,meas_dtheta, self.odometry_noise)
 
     def plot(self,ax = None, plotCov = False):
         #first call to plot should have ax variable included, unless you want to open a new axes.

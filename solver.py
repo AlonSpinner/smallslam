@@ -41,6 +41,8 @@ class solver:
         #graphics
         self.ax = ax #might be None, depending on input
         self.graphics_landmarks = []
+        self.graphics_poses = []
+
     def update(self, N=0):
         self.isam2.update(self.graph, self.initial_estimate)
         for kk in range(N):
@@ -92,4 +94,25 @@ class solver:
             cov = marginals.marginalCovariance(L(lm_index))
             loc = self.current_estimate.atPoint2(L(lm_index))
             self.graphics_landmarks.append(utils.plot_cov_ellipse(cov,loc,ax = self.ax))
+            self.graphics_landmarks.append(self.ax.scatter(loc[0],loc[1],c='b',s=1))
+
+
+    def plot_poses(self):
+        if self.ax is None:
+            raise TypeError("you must provide an axes handle to solver if you want to plot")
+
+        marginals = gtsam.Marginals(self.graph, self.current_estimate)
+
+        #remove old drawings if exist
+        for graphic in self.graphics_poses:
+                graphic.remove()
+
+        self.graphics_poses = []
+        ii = 0
+        while self.current_estimate.exists(X(ii)):
+            cov = marginals.marginalCovariance(X(ii))
+            pose = self.current_estimate.atPose2(X(ii))
+            graphics_line1, graphics_line2, graphics_cov = utils.plot_pose2_on_axes(self.ax,pose,axis_length = 0.1, covariance = cov)
+            self.graphics_poses.extend([graphics_line1, graphics_line2, graphics_cov])
+            ii +=1
 

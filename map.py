@@ -58,8 +58,14 @@ class map:
 
         for lm in self.landmarks:
             ii = self.semantics.index(lm.classLabel) #index of classLabel in semantics. used for shape and color
-            utils.plot_landmark(ax, loc = (lm.x,lm.y), cov = lm.cov, 
-                                index = None, color = self.colors[ii].reshape(1,-1), marker = self.markersList[ii], 
+            
+            cov = None if plotCov is False else lm.cov
+            index = None if plotIndex is False else lm.index
+            
+            utils.plot_landmark(ax, loc = (lm.x,lm.y), cov = cov, 
+                                index = index, 
+                                color = self.colors[ii].reshape(1,-1), 
+                                marker = self.markersList[ii], 
                                 markerSize = 10)
 
     #define color for each classLabel.

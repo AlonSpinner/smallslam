@@ -84,16 +84,15 @@ class solver:
         marginals = gtsam.Marginals(self.graph, self.current_estimate)
 
         #remove old drawings if exist
-        for graphic in self.graphics_landmarks:
-            graphic.remove()
+        for graphics_lm in self.graphics_landmarks:
+            for graphic in graphics_lm:
+                    graphic.remove()
 
         self.graphics_landmarks = []
         for lm_index in self.seen_landmarks:
             cov = marginals.marginalCovariance(L(lm_index))
             loc = self.current_estimate.atPoint2(L(lm_index))
-            self.graphics_landmarks.append(utils.plot_cov_ellipse(loc,cov,ax = self.ax))
-            self.graphics_landmarks.append(self.ax.scatter(loc[0],loc[1],c='b',s=1))
-
+            self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov, color = 'b', marker = '.', markerSize = 5))
 
     def plot_poses(self,axis_length = 0.1):
         if self.ax is None:
@@ -102,8 +101,9 @@ class solver:
         marginals = gtsam.Marginals(self.graph, self.current_estimate)
 
         #remove old drawings if exist
-        for graphic in self.graphics_poses:
-                graphic.remove()
+        for graphics_pose in self.graphics_poses:
+                for graphic in graphics_pose:
+                    graphic.remove()
 
         self.graphics_poses = []
         ii = 0
@@ -113,7 +113,6 @@ class solver:
             Rp2g = pose.rotation().matrix()  # rotation from pose to global
             origin = pose.translation()
 
-            graphics_line1, graphics_line2, graphics_ellip = utils.plot_pose(self.ax, Rp2g, origin, axis_length = 0.1, covariance = cov)
-            self.graphics_poses.extend([graphics_line1, graphics_line2, graphics_ellip])
+            self.graphics_poses.append(utils.plot_pose(self.ax, Rp2g, origin, axis_length = axis_length, covariance = cov))
             ii +=1
 

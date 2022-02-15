@@ -46,19 +46,24 @@ def plot_pose(axes , Rp2g, origin, axis_length: float = 0.1, covariance: np.ndar
     Plot a 2D pose on given axis `axes` with given `axis_length`.
     '''
 
+    graphics = []
+
     x_axis = origin + Rp2g[:, 0] * axis_length
     line = np.vstack((origin,x_axis))
     graphics_line1, = axes.plot(line[:, 0], line[:, 1], 'r-')
+    graphics.append(graphics_line1)
 
     y_axis = origin + Rp2g[:, 1] * axis_length
     line = np.vstack((origin,y_axis))
     graphics_line2, = axes.plot(line[:, 0], line[:, 1], 'g-')
+    graphics.append(graphics_line2)
 
 
     if covariance is not None:
         graphics_ellip = plot_cov_ellipse(origin, covariance[:2,:2], nstd=1, ax=axes, facecolor = 'none', edgecolor = 'k')
+        graphics.append(graphics_ellip)
 
-    return graphics_line1, graphics_line2, graphics_ellip
+    return graphics
 
 def plot_landmark(axes, loc, cov = None, index = None, color = None, marker = None, markerSize = None):
     if color is None:
@@ -74,5 +79,7 @@ def plot_landmark(axes, loc, cov = None, index = None, color = None, marker = No
         graphics.append(plot_cov_ellipse(loc,cov,nstd = 1,ax = axes,edgecolor = color))
     if index is not None:
         graphics.append(axes.text(loc[0],loc[1],index))
+
+    return graphics
 
     

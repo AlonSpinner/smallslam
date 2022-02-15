@@ -72,20 +72,15 @@ def plot_pose(axes , Rp2g, origin, axis_length: float = 0.1, covariance: np.ndar
 
     return graphics
 
-def plot_landmark(axes, loc, cov = None, index = None, color = None, marker = None, markerSize = None):
-    if color is None:
-        color = 'b'
-    if marker is None:
-        marker = 'o'
-    if markerSize is None:
-        markerSize = 5
+def plot_landmark(axes, loc, cov = None, index = None, 
+        markerShape = '.', markerColor = 'b', markerSize = 5, textColor = 'k'):
     
     graphics = []
-    graphics.append(axes.scatter(loc[0],loc[1], marker = marker, c = color))
+    graphics.append(axes.scatter(loc[0],loc[1], marker = markerShape, c = markerColor))
     if cov is not None:
-        graphics.append(plot_cov_ellipse(loc,cov,nstd = 1,ax = axes,edgecolor = color))
+        graphics.append(plot_cov_ellipse(loc,cov,nstd = 1,ax = axes,edgecolor = markerColor))
     if index is not None:
-        graphics.append(axes.text(loc[0],loc[1],index))
+        graphics.append(axes.text(loc[0],loc[1],index, color = textColor))
 
     return graphics
 

@@ -77,7 +77,7 @@ class solver:
             initial_L = gtsam.Point2(pose.x()+dx, pose.y()+dy)
             self.initial_estimate.insert(L(meas.index), initial_L)
 
-    def plot_landmarks(self):
+    def plot_landmarks(self,plotIndex = False):
         if self.ax is None:
             raise TypeError("you must provide an axes handle to solver if you want to plot")
 
@@ -90,9 +90,13 @@ class solver:
 
         self.graphics_landmarks = []
         for lm_index in self.seen_landmarks:
+            index = None if plotIndex is False else lm_index
+
             cov = marginals.marginalCovariance(L(lm_index))
             loc = self.current_estimate.atPoint2(L(lm_index))
-            self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov, color = 'b', marker = '.', markerSize = 1))
+            self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov,
+             markerColor = 'b', markerShape = '.', markerSize = 1,
+             index = index, textColor = 'b'))
 
     def plot_poses(self,axis_length = 0.1):
         if self.ax is None:

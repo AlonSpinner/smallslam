@@ -75,9 +75,10 @@ class map:
             
             utils.plot_landmark(ax, loc = (lm.x,lm.y), cov = cov, 
                                 index = index, 
-                                color = self.colors[ii].reshape(1,-1), 
-                                marker = self.markersList[ii], 
-                                markerSize = 10)
+                                markerColor = self.colors[ii].reshape(1,-1), 
+                                markerShape = self.markersList[ii], 
+                                markerSize = 10,
+                                textColor = 'k')
 
     #define color for each classLabel.
     @staticmethod 

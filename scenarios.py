@@ -22,7 +22,7 @@ def world1():
     car.range = 2
     
     #------ ground truth odometrey
-    dx = 0.4; dy = 0.4; dtheta =0.4
-    odom = [[dx,dy,dtheta]] * 30
+    dx = 0.2; dy = 0.2; dtheta =0.2
+    odom = [np.array([dx,dy,dtheta])] * 50
 
     return car, worldMap, ax, fig, odom

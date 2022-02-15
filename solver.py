@@ -7,7 +7,7 @@ import utils
 
 class solver:
     
-    def __init__(self,X0 = None,X0cov = None, ax = None):
+    def __init__(self,X0 = None,X0cov = None, semantics = None ,ax = None):
         if X0 is None:
             X0 = (0,0,0)
         if X0cov is None:
@@ -35,6 +35,9 @@ class solver:
 
         #seen_landmarks to avoid initalizing landmarks twice (breaks solver)
         self.seen_landmarks = []
+
+        #for extensive plotting or data assosication
+        self.semantics = semantics
 
         #graphics
         self.ax = ax #might be None, depending on input
@@ -77,9 +80,11 @@ class solver:
             initial_L = gtsam.Point2(pose.x()+dx, pose.y()+dy)
             self.initial_estimate.insert(L(meas.index), initial_L)
 
-    def plot_landmarks(self,plotIndex = False):
+    def plot_landmarks(self,plotIndex = False, plotSemantics = False):
         if self.ax is None:
-            raise TypeError("you must provide an axes handle to solver if you want to plot")
+            raise Exception("you must provide an axes handle to solver if you want to plot")
+        if plotSemantics is True and self.semantics is None:
+            raise Exception("You must provide semantics if you want to plot them. Currently empty.")
 
         marginals = gtsam.Marginals(self.graph, self.current_estimate)
 
@@ -91,16 +96,17 @@ class solver:
         self.graphics_landmarks = []
         for lm_index in self.seen_landmarks:
             index = None if plotIndex is False else lm_index
-
+            if self.semantics is not None and plotSemantics is True:
+                continue #in future, change markerColor. Holding me back: need to save y_t^k
             cov = marginals.marginalCovariance(L(lm_index))
             loc = self.current_estimate.atPoint2(L(lm_index))
             self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov,
-             markerColor = 'b', markerShape = '.', markerSize = 1,
-             index = index, textColor = 'b'))
+                markerColor = 'b', markerShape = '.', markerSize = 1,
+                index = index, textColor = 'b'))
 
     def plot_poses(self,axis_length = 0.1):
         if self.ax is None:
-            raise TypeError("you must provide an axes handle to solver if you want to plot")
+            raise Exception("you must provide an axes handle to solver if you want to plot")
 
         marginals = gtsam.Marginals(self.graph, self.current_estimate)
 
@@ -119,4 +125,3 @@ class solver:
 
             self.graphics_poses.append(utils.plot_pose(self.ax, Rp2g, origin, axis_length = axis_length, covariance = cov))
             ii +=1
-

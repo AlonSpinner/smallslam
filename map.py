@@ -29,36 +29,45 @@ class map:
 
         #instance attributes
         self.landmarks = []
+        self.classLabels = [] #will be filled laters
         self.addLandmarks(landmarks)
 
-    def fillMapRandomly(self,N,semantics,xrange,yrange):
+    def fillMapRandomly(self,N,classLabels,xrange,yrange):
         # N - amount of landmarks
-        # semantics - list of strings
+        # classLabels - list of strings
         # xrange, yrange - tuples
         landmarks = [None] * N
         for ii in range(N):
             landmarks[ii] = landmark(x = np.random.uniform(xrange[0],xrange[1]),
                                         y = np.random.uniform(yrange[0],yrange[1]),
-                                        classLabel = np.random.choice(semantics))
+                                        classLabel = np.random.choice(classLabels))
         self.addLandmarks(landmarks)
 
     def addLandmarks(self,landmarks):
         self.landmarks.extend(landmarks)
-        self.defineSemanticsFromLandmarks()
+        self.defineClasLabelsFromLandmarks()
         self.indexifyLandmarks()
 
-    #goes over all landmarks to find classLabels. semantics is a list of unique classLabels
-    def defineSemanticsFromLandmarks(self):
+    #goes over all landmarks to find classLabels.
+    def defineClasLabelsFromLandmarks(self):
         if self.landmarks: #not empty
             classLabels = [lm.classLabel for lm in self.landmarks]
-            semantics = list(set(classLabels))
-            if len(semantics) > 10:
-                raise TypeError("no more than 10 classes are premited. Not enough distinguishable markers in matplotlib")
-            self.semantics = list(set(classLabels))
+            classLabels = list(set(classLabels))
+            if len(classLabels) > 10:
+                raise Exception("no more than 10 classes are premited. Not enough distinguishable markers in matplotlib")
+            else:
+                self.classLabels = classLabels
 
     def indexifyLandmarks(self):
         for ii in range(len(self.landmarks)):
                 self.landmarks[ii].index = ii
+
+    def exportSemantics(self):
+        semantics = {}
+        semantics['classLabels'] = self.classLabels
+        semantics['color'] = self.colors[:len(self.classLabels)]
+        semantics['marker'] = self.markersList[:len(self.classLabels)]
+        return semantics
 
     def plot(self,ax = None, plotIndex = False, plotCov = False):
         if ax == None:
@@ -68,7 +77,7 @@ class map:
             ax.set_aspect('equal'); ax.grid()
 
         for lm in self.landmarks:
-            ii = self.semantics.index(lm.classLabel) #index of classLabel in semantics. used for shape and color
+            ii = self.classLabels.index(lm.classLabel) #index of classLabel. used for shape and color
             
             cov = None if plotCov is False else lm.cov
             index = None if plotIndex is False else lm.index

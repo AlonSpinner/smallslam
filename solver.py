@@ -18,7 +18,7 @@ class solver:
         self.initial_estimate = gtsam.Values()
         self.current_estimate = self.initial_estimate
 
-        #insert X) to initial_estiamte and graph as prior
+        #insert X0 to initial_estiamte and graph as prior
         X0 = gtsam.Pose2(X0)
         X0_prior_noise = gtsam.noiseModel.Gaussian.Covariance(X0cov)
         self.initial_estimate.insert(X(0), X0)
@@ -92,7 +92,7 @@ class solver:
         for lm_index in self.seen_landmarks:
             cov = marginals.marginalCovariance(L(lm_index))
             loc = self.current_estimate.atPoint2(L(lm_index))
-            self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov, color = 'b', marker = '.', markerSize = 5))
+            self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov, color = 'b', marker = '.', markerSize = 1))
 
     def plot_poses(self,axis_length = 0.1):
         if self.ax is None:

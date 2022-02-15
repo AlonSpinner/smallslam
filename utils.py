@@ -1,7 +1,14 @@
-#from tkinter import N
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+
+def spawnWorld(xrange, yrange):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlim(xrange); ax.set_ylim(yrange); 
+    ax.set_xlabel('x'); ax.set_ylabel('y'); 
+    ax.set_aspect('equal'); ax.grid()
+    return fig, ax
 
 def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals

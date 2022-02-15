@@ -31,6 +31,17 @@ class map:
         self.landmarks = []
         self.addLandmarks(landmarks)
 
+    def fillMapRandomly(self,N,semantics,xrange,yrange):
+        # N - amount of landmarks
+        # semantics - list of strings
+        # xrange, yrange - tuples
+        landmarks = [None] * N
+        for ii in range(N):
+            landmarks[ii] = landmark(x = np.random.uniform(xrange[0],xrange[1]),
+                                        y = np.random.uniform(yrange[0],yrange[1]),
+                                        classLabel = np.random.choice(semantics))
+        self.addLandmarks(landmarks)
+
     def addLandmarks(self,landmarks):
         self.landmarks.extend(landmarks)
         self.defineSemanticsFromLandmarks()

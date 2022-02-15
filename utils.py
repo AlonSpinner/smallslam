@@ -1,4 +1,4 @@
-from tkinter import N
+#from tkinter import N
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
@@ -7,7 +7,7 @@ from gtsam import Pose2
 import map
 import robot
 
-def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
+def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals
         '''
         Plots an `nstd` sigma error ellipse based on the specified covariance
@@ -16,88 +16,58 @@ def plot_cov_ellipse(cov, pos, nstd=1, ax=None, facecolor = 'none',edgecolor = '
 
         Parameters
         ----------
-            cov : The 2x2 covariance matrix to base the ellipse on
             pos : The location of the center of the ellipse. Expects a 2-element
                 sequence of [x0, y0].
+            cov : The 2x2 covariance matrix to base the ellipse on
             nstd : The radius of the ellipse in numbers of standard deviations.
-            ax : The axis that the ellipse will be plotted on. Defaults to the 
-                current axis.
+            ax : The axis that the ellipse will be plotted on. If not provided, we won't plot.
             Additional keyword arguments are pass on to the ellipse patch.
 
         Returns
         -------
             A matplotlib ellipse artist
         '''
-        def eigsorted(cov):
-            eigs, vecs = np.linalg.eigh(cov)
-            order = eigs.argsort()[::-1]
-            if np.any(eigs < 0):
-                raise TypeError("covaraince matrix must be positive definite")
-            return eigs[order], vecs[:,order]
-
-        if ax is None:
-            ax = plt.gca()
-
-        eigs, vecs = eigsorted(cov) #I am not exactly sure why this is needed
+        eigs, vecs = np.linalg.eig(cov)
         theta = np.degrees(np.arctan2(vecs[1,0],vecs[0,0])) #obtain theta from first axis. second axis is just perpendicular to it
 
         # Width and height are "full" widths, not radius
         width, height = 2 * nstd * np.sqrt(eigs)
-        ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, \
-         facecolor = facecolor, edgecolor=edgecolor, **kwargs)
+        ellip = Ellipse(xy=pos, 
+                        width=width, 
+                        height=height, 
+                        angle=theta,
+                        facecolor = facecolor, 
+                        edgecolor=edgecolor, **kwargs)
 
-        ax.add_artist(ellip)
+        if ax is not None:
+            ax.add_patch(ellip)
+        
         return ellip
 
-def plot_pose2_on_axes(axes,
-                       pose: Pose2,
-                       axis_length: float = 0.1,
-                       covariance: np.ndarray = None) -> None:
-    """
+def plot_pose(axes , Rp2g, origin, axis_length: float = 0.1, covariance: np.ndarray = None):
+    '''
     TAKEN FROM gtsam.utils.plot AND SLIGHTLY EDITED
 
 
     Plot a 2D pose on given axis `axes` with given `axis_length`.
+    '''
 
-    Args:
-        axes (matplotlib.axes.Axes): Matplotlib axes.
-        pose: The pose to be plotted.
-        axis_length: The length of the camera axes.
-        covariance (numpy.ndarray): Marginal covariance matrix to plot
-            the uncertainty of the estimation.
-    """
-    # get rotation and translation (center)
-    gRp = pose.rotation().matrix()  # rotation from pose to global
-    t = pose.translation()
-    origin = t
+    x_axis = origin + Rp2g[:, 0] * axis_length
+    line = np.vstack((origin,x_axis))
+    graphics_line1, = axes.plot(line[:, 0], line[:, 1], 'r-')
 
-    # draw the camera axes
-    x_axis = origin + gRp[:, 0] * axis_length
-    line = np.append(origin[np.newaxis], x_axis[np.newaxis], axis=0)
-    graphics_line1 = axes.plot(line[:, 0], line[:, 1], 'r-')
+    y_axis = origin + Rp2g[:, 1] * axis_length
+    line = np.vstack((origin,y_axis))
+    graphics_line2, = axes.plot(line[:, 0], line[:, 1], 'g-')
 
-    y_axis = origin + gRp[:, 1] * axis_length
-    line = np.append(origin[np.newaxis], y_axis[np.newaxis], axis=0)
-    graphics_line2 = axes.plot(line[:, 0], line[:, 1], 'g-')
 
     if covariance is not None:
-        pPp = covariance[0:2, 0:2]
-        gPp = np.matmul(np.matmul(gRp, pPp), gRp.T)
+        graphics_ellip = plot_cov_ellipse(origin, covariance[:2,:2], nstd=1, ax=axes, facecolor = 'none', edgecolor = 'k')
 
-        w, v = np.linalg.eig(gPp)
+        
+   
 
-        # k = 2.296
-        k = 5.0
-
-        angle = np.arctan2(v[1, 0], v[0, 0])
-        e1 = Ellipse(origin,
-                np.sqrt(w[0] * k),
-                np.sqrt(w[1] * k),
-                np.rad2deg(angle),
-                fill=False)
-        axes.add_patch(e1)
-
-    return graphics_line1[0], graphics_line2[0], e1
+    return graphics_line1, graphics_line2, graphics_ellip
 
 def setWorldMap():
     fig = plt.figure()
@@ -112,7 +82,7 @@ def default_world():
 
     #------Build worldmap
     fig , ax = setWorldMap()
-    N = 15 #number of landmarks
+    N = 40 #number of landmarks
     semantics = ("table","MEP","chair","pillar")
     xrange = (-2,2)
     yrange = (-1,3)

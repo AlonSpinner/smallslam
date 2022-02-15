@@ -62,13 +62,13 @@ class map:
                 marker = self.markersList[ii],
                 c = self.colors[ii].reshape(1,-1) #reshape to prevent warnning. scatter wants 2D array
                 )
-            if plotIndex:    
+            if plotIndex:
                 ax.text(lm.x,lm.y,lm.index)
 
             if plotCov:
                 if not len(lm.cov): #if is empty
                     raise TypeError("landmark has no covaraince key")
-                utils.plot_cov_ellipse(lm.cov,(lm.x,lm.y),nstd = 1,ax = ax,edgecolor=self.colors[ii].reshape(1,-1))
+                utils.plot_cov_ellipse((lm.x,lm.y),lm.cov,nstd = 1,ax = ax,edgecolor=self.colors[ii].reshape(1,-1))
 
     #define color for each classLabel.
     @staticmethod 

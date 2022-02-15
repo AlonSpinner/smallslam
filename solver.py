@@ -3,8 +3,6 @@ from gtsam.symbol_shorthand import L, X
 import numpy as np
 from robot import meas_odom
 from robot import meas_landmark
-import gtsam.utils.plot as gtsam_plot
-import matplotlib.pyplot as plt
 import utils
 
 class solver:
@@ -13,7 +11,7 @@ class solver:
         if X0 is None:
             X0 = (0,0,0)
         if X0cov is None:
-            cov = 0.001* np.eye(3)
+            X0cov = 0.01* np.eye(3)
 
         #initalize solver
         self.graph = gtsam.NonlinearFactorGraph()
@@ -22,7 +20,7 @@ class solver:
 
         #insert X) to initial_estiamte and graph as prior
         X0 = gtsam.Pose2(X0)
-        X0_prior_noise = gtsam.noiseModel.Gaussian.Covariance(cov)
+        X0_prior_noise = gtsam.noiseModel.Gaussian.Covariance(X0cov)
         self.initial_estimate.insert(X(0), X0)
         self.graph.push_back(gtsam.PriorFactorPose2(X(0), X0, X0_prior_noise))
 
@@ -93,11 +91,11 @@ class solver:
         for lm_index in self.seen_landmarks:
             cov = marginals.marginalCovariance(L(lm_index))
             loc = self.current_estimate.atPoint2(L(lm_index))
-            self.graphics_landmarks.append(utils.plot_cov_ellipse(cov,loc,ax = self.ax))
+            self.graphics_landmarks.append(utils.plot_cov_ellipse(loc,cov,ax = self.ax))
             self.graphics_landmarks.append(self.ax.scatter(loc[0],loc[1],c='b',s=1))
 
 
-    def plot_poses(self):
+    def plot_poses(self,axis_length = 0.1):
         if self.ax is None:
             raise TypeError("you must provide an axes handle to solver if you want to plot")
 
@@ -112,7 +110,10 @@ class solver:
         while self.current_estimate.exists(X(ii)):
             cov = marginals.marginalCovariance(X(ii))
             pose = self.current_estimate.atPose2(X(ii))
-            graphics_line1, graphics_line2, graphics_cov = utils.plot_pose2_on_axes(self.ax,pose,axis_length = 0.1, covariance = cov)
-            self.graphics_poses.extend([graphics_line1, graphics_line2, graphics_cov])
+            Rp2g = pose.rotation().matrix()  # rotation from pose to global
+            origin = pose.translation()
+
+            graphics_line1, graphics_line2, graphics_ellip = utils.plot_pose(self.ax, Rp2g, origin, axis_length = 0.1, covariance = cov)
+            self.graphics_poses.extend([graphics_line1, graphics_line2, graphics_ellip])
             ii +=1
 

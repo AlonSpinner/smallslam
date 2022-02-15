@@ -2,10 +2,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-from gtsam import Pose2
-
-import map
-import robot
 
 def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals
@@ -47,8 +43,6 @@ def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = '
 def plot_pose(axes , Rp2g, origin, axis_length: float = 0.1, covariance: np.ndarray = None):
     '''
     TAKEN FROM gtsam.utils.plot AND SLIGHTLY EDITED
-
-
     Plot a 2D pose on given axis `axes` with given `axis_length`.
     '''
 
@@ -64,60 +58,21 @@ def plot_pose(axes , Rp2g, origin, axis_length: float = 0.1, covariance: np.ndar
     if covariance is not None:
         graphics_ellip = plot_cov_ellipse(origin, covariance[:2,:2], nstd=1, ax=axes, facecolor = 'none', edgecolor = 'k')
 
-        
-   
-
     return graphics_line1, graphics_line2, graphics_ellip
 
-def setWorldMap():
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xlim(-2,2); ax.set_ylim(-1,3); 
-    ax.set_xlabel('x'); ax.set_ylabel('y'); 
-    ax.set_aspect('equal'); ax.grid()
-    return fig, ax
-
-def default_world():
-    np.random.seed(seed=2) #this is important. affects measurements aswell
-
-    #------Build worldmap
-    fig , ax = setWorldMap()
-    N = 40 #number of landmarks
-    semantics = ("table","MEP","chair","pillar")
-    xrange = (-2,2)
-    yrange = (-1,3)
-
-    landmarks = [None] * N
-    for ii in range(N):
-        landmarks[ii] = map.landmark(x = (np.random.rand()-0.5) * np.diff(xrange) + np.mean(xrange),
-                                    y = (np.random.rand()-0.5) * np.diff(yrange) + np.mean(yrange),
-                                    classLabel = np.random.choice(semantics),
-                                )
-
-    worldMap = map.map(landmarks)
-    worldMap.plot(ax = ax, plotIndex = True,plotCov = False)
-
-    #------Spawn Robot
-    car = robot.robot(ax = ax)
-    car.range = 2
+def plot_landmark(axes, loc, cov = None, index = None, color = None, marker = None, markerSize = None):
+    if color is None:
+        color = 'b'
+    if marker is None:
+        marker = 'o'
+    if markerSize is None:
+        markerSize = 5
     
-    return car, worldMap, ax, fig
+    graphics = []
+    graphics.append(axes.scatter(loc[0],loc[1], marker = marker, c = color))
+    if cov is not None:
+        graphics.append(plot_cov_ellipse(loc,cov,nstd = 1,ax = axes,edgecolor = color))
+    if index is not None:
+        graphics.append(axes.text(loc[0],loc[1],index))
 
-def default_parameters():
-    #dictionary form
     
-    #build sub dictionary odom
-    odom = (0.4,0.4,0.4) #dx,dy,dtheta
-
-    #build sub dictionary time
-    time = {
-            "dt": 0.5,
-            "timeFinal": 10,
-            }
-
-    #build prms
-    prms = {
-            "odom": odom,
-            "time": time,
-            }
-    return prms

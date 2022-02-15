@@ -58,17 +58,9 @@ class map:
 
         for lm in self.landmarks:
             ii = self.semantics.index(lm.classLabel) #index of classLabel in semantics. used for shape and color
-            ax.scatter(lm.x,lm.y,
-                marker = self.markersList[ii],
-                c = self.colors[ii].reshape(1,-1) #reshape to prevent warnning. scatter wants 2D array
-                )
-            if plotIndex:
-                ax.text(lm.x,lm.y,lm.index)
-
-            if plotCov:
-                if not len(lm.cov): #if is empty
-                    raise TypeError("landmark has no covaraince key")
-                utils.plot_cov_ellipse((lm.x,lm.y),lm.cov,nstd = 1,ax = ax,edgecolor=self.colors[ii].reshape(1,-1))
+            utils.plot_landmark(ax, loc = (lm.x,lm.y), cov = lm.cov, 
+                                index = None, color = self.colors[ii].reshape(1,-1), marker = self.markersList[ii], 
+                                markerSize = 10)
 
     #define color for each classLabel.
     @staticmethod 

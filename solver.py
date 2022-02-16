@@ -34,10 +34,14 @@ class solver:
         self.i = 0 
 
         #seen_landmarks to avoid initalizing landmarks twice (breaks solver)
-        self.seen_landmarks = []
+        self.seen_landmarks = {
+                             'index': [],
+                             'classLabel': []
+                              }
 
         #for extensive plotting or data assosication
-        self.semantics = semantics
+        #exported from map object. dictionary with following keys: "classLabel","color","marker", each holding a list, representing tabular data
+        self.semantics = semantics 
 
         #graphics
         self.ax = ax #might be None, depending on input
@@ -72,8 +76,11 @@ class solver:
                     gtsam.Rot2.fromAngle(meas.angle), meas.range, rgbd_noise)
         self.graph.push_back(factor)
 
-        if meas.index not in self.seen_landmarks: #then add landmark to inital_estimate and mark it as seen
-            self.seen_landmarks.append(meas.index)
+        if meas.index not in self.seen_landmarks["index"]: #then mark it as seen and it add landmark to inital_estimate
+            
+            self.seen_landmarks["index"].append(meas.index)
+            self.seen_landmarks["classLabel"].append(meas.classLabel)
+            
             pose = self.initial_estimate.atPose2(X(self.i))
             dx = meas.range * np.cos(pose.theta()+meas.angle)
             dy = meas.range * np.sin(pose.theta()+meas.angle)
@@ -94,15 +101,22 @@ class solver:
                     graphic.remove()
 
         self.graphics_landmarks = []
-        for lm_index in self.seen_landmarks:
-            index = None if plotIndex is False else lm_index
+        for seen_lm_index, seen_lm_classLabel in zip(self.seen_landmarks["index"],self.seen_landmarks["classLabel"]):
+
+            #prep for plots
+            index4plot = None if plotIndex is False else seen_lm_index
             if self.semantics is not None and plotSemantics is True:
-                continue #in future, change markerColor. Holding me back: need to save y_t^k
-            cov = marginals.marginalCovariance(L(lm_index))
-            loc = self.current_estimate.atPoint2(L(lm_index))
+                ii = self.semantics["classLabel"].index(seen_lm_classLabel) #find index of class label in list (this needs to be a hashmap)
+                markerShape = self.semantics['marker'][ii]
+            else:
+                markerShape = '.' #default
+
+            #plot
+            cov = marginals.marginalCovariance(L(seen_lm_index))
+            loc = self.current_estimate.atPoint2(L(seen_lm_index))
             self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov,
-                markerColor = 'b', markerShape = '.', markerSize = 1,
-                index = index, textColor = 'b'))
+                markerColor = 'b', markerShape = markerShape, markerSize = 3,
+                index = index4plot, textColor = 'b'))
 
     def plot_poses(self,axis_length = 0.1):
         if self.ax is None:

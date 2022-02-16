@@ -76,7 +76,7 @@ def plot_landmark(axes, loc, cov = None, index = None,
         markerShape = '.', markerColor = 'b', markerSize = 5, textColor = 'k'):
     
     graphics = []
-    graphics.append(axes.scatter(loc[0],loc[1], marker = markerShape, c = markerColor))
+    graphics.append(axes.scatter(loc[0],loc[1], marker = markerShape, c = markerColor, s = markerSize))
     if cov is not None:
         graphics.append(plot_cov_ellipse(loc,cov,nstd = 1,ax = axes,edgecolor = markerColor))
     if index is not None:

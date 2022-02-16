@@ -63,10 +63,11 @@ class map:
                 self.landmarks[ii].index = ii
 
     def exportSemantics(self):
-        semantics = {}
-        semantics['classLabels'] = self.classLabels
-        semantics['color'] = self.colors[:len(self.classLabels)]
-        semantics['marker'] = self.markersList[:len(self.classLabels)]
+        semantics = {
+                    "classLabel": self.classLabels,
+                    "color": self.colors[:len(self.classLabels)],
+                    "marker": self.markersList[:len(self.classLabels)]
+                    }
         return semantics
 
     def plot(self,ax = None, plotIndex = False, plotCov = False):

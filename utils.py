@@ -3,13 +3,30 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import gtsam
 
-def spawnWorld(xrange, yrange):
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xlim(xrange); ax.set_ylim(yrange); 
-    ax.set_xlabel('x'); ax.set_ylabel('y'); 
-    ax.set_aspect('equal'); ax.grid()
-    return fig, ax
+def spawnWorld(xrange, yrange,type = "world"):
+    
+    
+    if type == "world":
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_xlim(xrange); ax.set_ylim(yrange); 
+        ax.set_xlabel('x'); ax.set_ylabel('y'); 
+        ax.set_aspect('equal'); ax.grid()
+        return fig, ax
+    
+    elif type == "world and error":
+        fig, (ax1, ax2) = plt.subplots(2,1)
+        
+        #axes for world
+        ax1.set_xlim(xrange); ax1.set_ylim(yrange); 
+        ax1.set_xlabel('x'); ax1.set_ylabel('y'); 
+        ax1.set_aspect('equal'); ax1.grid()
+
+        #axes for error tracking
+        ax2.set_xlabel('time'); ax2.set_ylabel('error'); 
+        ax2.grid()
+
+        return fig, (ax1,ax2)
 
 def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals

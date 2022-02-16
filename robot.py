@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class robot:
-    def __init__(self,odometry_noise = None, rgbd_noise = None, ax = None, FOV = 60.0*np.pi/180.0, range = 1.0, pose = None):
+    def __init__(self,odometry_noise = None, rgbd_noise = None,
+                 FOV = 60.0*np.pi/180.0, range = 1.0, pose = None, 
+                 ax = None, markerSize=200):
 
         #input assumptions
         if odometry_noise == None:
@@ -18,7 +20,9 @@ class robot:
 
         #starting location
         if pose is None: #not set in defaults as numpy arrays are mutable! it causes the class to rememmber inital value
-            pose = np.array([0.0,0.0,0.0])
+            pose = np.array([0.0,
+                             0.0,
+                             0.0])
         self.pose = pose # pose of robot [x,y,theta]
         
         #sensor physics
@@ -32,7 +36,7 @@ class robot:
         self.graphic_car = []
 
         if ax is not None:
-            self.plot(ax)
+            self.plot(ax, markerSize = markerSize)
 
     def moveAndMeasureOdometrey(self,odom): 
         #odom = [dx,dy,dtheta] are in system k, when trasitioning to kp1
@@ -70,7 +74,7 @@ class robot:
         meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometry_noise)
         return meas_odom(meas_dx,meas_dy,meas_dtheta, self.odometry_noise)
 
-    def plot(self,ax = None):
+    def plot(self,ax = None, markerSize = 200):
         #first call to plot should have ax variable included, unless you want to open a new axes.
         if ax == None and not self.graphic_car: #no ax given, and car was not plotted before
             fig = plt.figure()
@@ -86,7 +90,7 @@ class robot:
             self.graphic_car.set_offsets(self.pose[:2]) #https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
             self.graphic_rgbd.set_xy(xy)  #https://stackoverflow.com/questions/38341722/animation-to-translate-polygon-using-matplotlib
         else:
-            self.graphic_car = ax.scatter(self.pose[0],self.pose[1],s = 200, c = 'k', marker = 'o')
+            self.graphic_car = ax.scatter(self.pose[0],self.pose[1],s = markerSize, c = 'k', marker = 'o')
             self.graphic_rgbd, = ax.fill(xy[:,0],xy[:,1], facecolor = "b" , alpha=0.1, animated = False)
 
     def world2Ego(self,xyWorld):

@@ -3,7 +3,7 @@ import map
 import robot
 import utils
 
-def world1():
+def scenario1():
     np.random.seed(seed=2) #this is important. affects measurements aswell
 
     #------Build worldmap
@@ -28,50 +28,74 @@ def world1():
     return car, worldMap, ax, fig, odom
 
 
-def world2():
+def scenario2():
     np.random.seed(seed=3) #this is important. affects measurements aswell
 
     #------Build worldmap
     xrange = (-10,+100); yrange = (-5,+5)
-    fig , ax = utils.spawnWorld(xrange, yrange)
+    fig , (axWorld,axError) = utils.spawnWorld(xrange, yrange, type = "world and error")
     
     #------landmarks
     N = 100 
     semantics = ("table","MEP","chair")
     worldMap = map.map()
     worldMap.fillMapRandomly(N,semantics,xrange,yrange = (-2,+2))
-    worldMap.plot(ax = ax, plotIndex = False,plotCov = False)
+    worldMap.plot(ax = axWorld, plotIndex = False,plotCov = False)
 
     #------Spawn Robot
-    car = robot.robot(ax = ax, FOV = np.radians(90))
+    car = robot.robot(ax = axWorld, FOV = np.radians(90), markerSize = 50)
     car.range = 10
     
     #------ ground truth odometrey
     dx = 1; dy = 0; dtheta =0
     odom = [np.array([dx,dy,dtheta])] * 100
 
-    return car, worldMap, ax, fig, odom
+    return car, worldMap, axWorld, axError,  fig, odom
 
-def world3():
+def scenario3():
     np.random.seed(seed=3) #this is important. affects measurements aswell
 
     #------Build worldmap
     xrange = (-10,+100); yrange = (-5,+30)
-    fig , ax = utils.spawnWorld(xrange, yrange)
+    fig , (axWorld,axError) = utils.spawnWorld(xrange, yrange, type = "world and error")
     
     #------landmarks
     N = 100 
     semantics = ("table","MEP","chair")
     worldMap = map.map()
     worldMap.fillMapRandomly(N,semantics,xrange,yrange = (-2,+2))
-    worldMap.plot(ax = ax, plotIndex = False,plotCov = False)
+    worldMap.plot(ax = axWorld, plotIndex = False,plotCov = False)
 
     #------Spawn Robot
-    car = robot.robot(ax = ax, FOV = np.radians(90))
+    car = robot.robot(ax = axWorld, FOV = np.radians(90), markerSize = 50)
     car.range = 3
     
     #------ ground truth odometrey
     dx = 1; dy = 0; dtheta =0
     odom = [np.array([dx,dy,dtheta])] * 100
 
-    return car, worldMap, ax, fig, odom
+    return car, worldMap, axWorld, axError,  fig, odom
+
+def scenario4():
+    np.random.seed(seed=3) #this is important. affects measurements aswell
+
+    #------Build worldmap
+    xrange = (-10,+100); yrange = (-5,+30)
+    fig , (axWorld,axError) = utils.spawnWorld(xrange, yrange, type = "world and error")
+    
+    #------landmarks
+    N = 100 
+    semantics = ("table","MEP","chair")
+    worldMap = map.map()
+    worldMap.fillMapRandomly(N,semantics,xrange,yrange = (-10,+10))
+    worldMap.plot(ax = axWorld, plotIndex = False,plotCov = False)
+
+    #------Spawn Robot
+    car = robot.robot(ax = axWorld, FOV = np.radians(90), markerSize = 50)
+    car.range = 20
+    
+    #------ ground truth odometrey
+    dx = 1; dy = 0; dtheta =0
+    odom = [np.array([dx,dy,dtheta])] * 100
+
+    return car, worldMap, axWorld, axError,  fig, odom

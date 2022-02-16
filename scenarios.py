@@ -24,6 +24,7 @@ def scenario1():
     #------ ground truth odometrey
     dx = 0.2; dy = 0.2; dtheta =0.2
     odom = [np.array([dx,dy,dtheta])] * 50
+    odom = [np.array([0.0,0.0,0.0])]+ odom 
 
     return car, worldMap, ax, fig, odom
 
@@ -120,8 +121,8 @@ def scenario5():
     
     #------ ground truth odometrey
     a = 20 #square side length
-    odomLine = [np.array([a/2,0,0])] * 2
-    odomTurn = [np.array([0,0,np.pi/2/1])] * 1
+    odomLine = [np.array([a/20,0,0])] * 20
+    odomTurn = [np.array([0,0,np.pi/2/5])] * 5
     
     odom = []
     for _ in range(4):

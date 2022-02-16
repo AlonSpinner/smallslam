@@ -41,10 +41,10 @@ class robot:
 
     def moveAndMeasureOdometrey(self,odom): 
         #odom = [dx,dy,dtheta] are in system k, when trasitioning to kp1
+        self.pose[2] += odom[2] #add dtheta 
         dxdy = utils.rot2(self.pose[2],odom[:2]) #find translation in global coordiantes
         self.pose[0] += dxdy[0] #update
         self.pose[1] += dxdy[1]
-        self.pose[2] += odom[2] #add dtheta 
         
         #note:
         #first rotate and than add translation. Same as in transform matrix.
@@ -84,9 +84,9 @@ class robot:
             ax.set_xlabel('x'); ax.set_ylabel('y'); 
             ax.set_aspect('equal'); ax.grid()
 
-        phi = np.linspace(self.pose[2]-self.FOV/2,self.pose[2]+self.FOV/2,10)
-        p = self.range * np.array([np.cos(phi),np.sin(phi)]).T + self.pose[:2]
-        xy = np.vstack((self.pose[:2],p))
+        phi = np.linspace(-self.FOV/2,self.FOV/2,10)
+        p = self.range * np.array([np.cos(phi),np.sin(phi)])
+        xy = np.vstack((self.pose[:2],self.ego2World(p).T))
 
         if self.graphic_car: #car was plotted before
             self.graphic_car.set_offsets(self.pose[:2]) #https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
@@ -103,10 +103,11 @@ class robot:
         return xyRobot
 
     def ego2World(self,xyRobot):
+        #accepts 2XM and return 2XM
         theta = self.pose[2]
         Rrobot2world = np.array([[np.cos(theta),-np.sin(theta)],
                         [np.sin(theta),np.cos(theta)]])
-        xyWorld = Rrobot2world @ xyRobot + self.pose[:2]
+        xyWorld = Rrobot2world @ xyRobot + np.atleast_2d(self.pose[:2]).T
         return xyWorld
         
 

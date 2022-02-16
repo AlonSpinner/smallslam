@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import utils
 
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
@@ -40,9 +41,10 @@ class robot:
 
     def moveAndMeasureOdometrey(self,odom): 
         #odom = [dx,dy,dtheta] are in system k, when trasitioning to kp1
+        dxdy = utils.rot2(self.pose[2],odom[:2]) #find translation in global coordiantes
+        self.pose[0] += dxdy[0] #update
+        self.pose[1] += dxdy[1]
         self.pose[2] += odom[2] #add dtheta 
-        self.pose[0] += odom[0] * np.cos(self.pose[2]) #add dx
-        self.pose[1] += odom[1] * np.sin(self.pose[2])#add dy
         
         #note:
         #first rotate and than add translation. Same as in transform matrix.
@@ -99,6 +101,13 @@ class robot:
                         [np.sin(-theta),np.cos(-theta)]])
         xyRobot = Rworld2robot @ (xyWorld - self.pose[:2])
         return xyRobot
+
+    def ego2World(self,xyRobot):
+        theta = self.pose[2]
+        Rrobot2world = np.array([[np.cos(theta),-np.sin(theta)],
+                        [np.sin(theta),np.cos(theta)]])
+        xyWorld = Rrobot2world @ xyRobot + self.pose[:2]
+        return xyWorld
         
 
 class meas_landmark:

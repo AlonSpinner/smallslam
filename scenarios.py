@@ -7,7 +7,7 @@ def scenario1():
     np.random.seed(seed=2) #this is important. affects measurements aswell
 
     #------Build worldmap
-    xrange = (-2,2); yrange = (-1,3)
+    xrange = (-3,1); yrange = (-2,3)
     fig , ax = utils.spawnWorld(xrange, yrange)
     
     #------landmarks
@@ -98,4 +98,33 @@ def scenario4():
     dx = 1; dy = 0; dtheta =0
     odom = [np.array([dx,dy,dtheta])] * 100
 
-    return car, worldMap, axWorld, axError,  fig, odom
+    return car, worldMap, axWorld, axError, fig, odom
+
+def scenario5():
+    np.random.seed(seed=3) #this is important. affects measurements aswell
+
+    #------Build worldmap
+    xrange = (-5,+25); yrange = (-5,+25)
+    fig , (axWorld,axError) = utils.spawnWorld(xrange, yrange, type = "world and error")
+    
+    #------landmarks
+    N = 100 
+    semantics = ("table","MEP","chair")
+    worldMap = map.map()
+    #worldMap.fillMapRandomly(N,semantics,xrange,yrange)
+    worldMap.plot(ax = axWorld, plotIndex = False,plotCov = False)
+
+    #------Spawn Robot
+    car = robot.robot(ax = axWorld, FOV = np.radians(90), markerSize = 50)
+    car.range = 10
+    
+    #------ ground truth odometrey
+    a = 20 #square side length
+    odomLine = [np.array([a/2,0,0])] * 2
+    odomTurn = [np.array([0,0,np.pi/2/1])] * 1
+    
+    odom = []
+    for _ in range(4):
+        odom = odom + odomLine + odomTurn 
+
+    return car, worldMap, axWorld, axError, fig, odom

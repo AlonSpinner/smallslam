@@ -104,3 +104,8 @@ def plot_landmark(axes, loc, cov = None, index = None,
 
 def pose2ToNumpy(pose2: gtsam.Pose2):
     return np.array([pose2.x(),pose2.y(),pose2.theta()])
+
+def rot2(theta,v):
+    Q = np.array([[np.cos(theta),-np.sin(theta)],
+                  [np.sin(theta),np.cos(theta)]])
+    return Q @ v

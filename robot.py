@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class robot:
-    def __init__(self,odometry_noise = None, rgbd_noise = None, ax = None):
+    def __init__(self,odometry_noise = None, rgbd_noise = None, ax = None, FOV = 60.0*np.pi/180.0, range = 1.0, pose = None):
+
         #input assumptions
         if odometry_noise == None:
             odometry_noise = np.zeros((3,3))
@@ -16,12 +17,13 @@ class robot:
             rgbd_noise[1,1] = np.radians(1)**2 #angular noise
 
         #starting location
-        self.pose = np.array([0.0,
-                    0.0,
-                    0.0]) # pose of robot [x,y,theta]
+        if pose is None: #not set in defaults as numpy arrays are mutable! it causes the class to rememmber inital value
+            pose = np.array([0.0,0.0,0.0])
+        self.pose = pose # pose of robot [x,y,theta]
+        
         #sensor physics
-        self.FOV = np.radians(60.0)
-        self.range = 1.0 #m
+        self.FOV = FOV #radians
+        self.range = range #[m]
         self.odometry_noise = odometry_noise
         self.rgbd_noise = rgbd_noise
         

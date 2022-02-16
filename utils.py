@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+import gtsam
 
 def spawnWorld(xrange, yrange):
     fig = plt.figure()
@@ -84,4 +85,5 @@ def plot_landmark(axes, loc, cov = None, index = None,
 
     return graphics
 
-    
+def pose2ToNumpy(pose2: gtsam.Pose2):
+    return np.array([pose2.x(),pose2.y(),pose2.theta()])

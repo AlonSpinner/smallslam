@@ -118,7 +118,7 @@ class solver:
                 markerColor = 'b', markerShape = markerShape, markerSize = 3,
                 index = index4plot, textColor = 'b'))
 
-    def plot_poses(self,axis_length = 0.1):
+    def plot_poses(self,axis_length = 0.1, plotCov = True):
         if self.ax is None:
             raise Exception("you must provide an axes handle to solver if you want to plot")
 
@@ -132,7 +132,7 @@ class solver:
         self.graphics_poses = []
         ii = 0
         while self.current_estimate.exists(X(ii)):
-            cov = marginals.marginalCovariance(X(ii))
+            cov = marginals.marginalCovariance(X(ii)) if plotCov is True else None
             pose = self.current_estimate.atPose2(X(ii))
             Rp2g = pose.rotation().matrix()  # rotation from pose to global
             origin = pose.translation()

@@ -3,31 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import gtsam
 
-def spawnWorld(xrange, yrange,type = "world"):
-    
-    
-    if type == "world":
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlim(xrange); ax.set_ylim(yrange); 
-        ax.set_xlabel('x'); ax.set_ylabel('y'); 
-        ax.set_aspect('equal'); ax.grid()
-        return fig, ax
-    
-    elif type == "world and error":
-        fig, (ax1, ax2) = plt.subplots(2,1)
-        
-        #axes for world
-        ax1.set_xlim(xrange); ax1.set_ylim(yrange); 
-        ax1.set_xlabel('x'); ax1.set_ylabel('y'); 
-        ax1.set_aspect('equal'); ax1.grid()
-
-        #axes for error tracking
-        ax2.set_xlabel('time'); ax2.set_ylabel('error'); 
-        ax2.grid()
-
-        return fig, (ax1,ax2)
-
 def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = 'b' ,  **kwargs):
         #slightly edited from https://stackoverflow.com/questions/12301071/multidimensional-confidence-intervals
         '''
@@ -65,27 +40,29 @@ def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = '
         
         return ellip
 
-def plot_pose(axes , Rp2g, origin, axis_length: float = 0.1, covariance: np.ndarray = None):
+def plot_pose(axes , Re2w, t_w_w2e, axis_length: float = 0.1, covariance: np.ndarray = None):
     '''
     TAKEN FROM gtsam.utils.plot AND SLIGHTLY EDITED
     Plot a 2D pose on given axis `axes` with given `axis_length`.
-    '''
 
+    e - ego
+    w - world
+    '''
     graphics = []
 
-    x_axis = origin + Rp2g[:, 0] * axis_length
-    line = np.vstack((origin,x_axis))
+    x_axis = t_w_w2e + Re2w[:, 0] * axis_length
+    line = np.vstack((t_w_w2e,x_axis))
     graphics_line1, = axes.plot(line[:, 0], line[:, 1], 'r-')
     graphics.append(graphics_line1)
 
-    y_axis = origin + Rp2g[:, 1] * axis_length
-    line = np.vstack((origin,y_axis))
+    y_axis = t_w_w2e + Re2w[:, 1] * axis_length
+    line = np.vstack((t_w_w2e,y_axis))
     graphics_line2, = axes.plot(line[:, 0], line[:, 1], 'g-')
     graphics.append(graphics_line2)
 
 
     if covariance is not None:
-        graphics_ellip = plot_cov_ellipse(origin, covariance[:2,:2], nstd=1, ax=axes, facecolor = 'none', edgecolor = 'k')
+        graphics_ellip = plot_cov_ellipse(t_w_w2e, covariance[:2,:2], nstd=1, ax=axes, facecolor = 'none', edgecolor = 'k')
         graphics.append(graphics_ellip)
 
     return graphics
@@ -102,10 +79,30 @@ def plot_landmark(axes, loc, cov = None, index = None,
 
     return graphics
 
+def spawnWorld(xrange, yrange,type = "world"):
+    
+    
+    if type == "world":
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_xlim(xrange); ax.set_ylim(yrange); 
+        ax.set_xlabel('x'); ax.set_ylabel('y'); 
+        ax.set_aspect('equal'); ax.grid()
+        return fig, ax
+    
+    elif type == "world and error":
+        fig, (ax1, ax2) = plt.subplots(2,1)
+        
+        #axes for world
+        ax1.set_xlim(xrange); ax1.set_ylim(yrange); 
+        ax1.set_xlabel('x'); ax1.set_ylabel('y'); 
+        ax1.set_aspect('equal'); ax1.grid()
+
+        #axes for error tracking
+        ax2.set_xlabel('time'); ax2.set_ylabel('error'); 
+        ax2.grid()
+
+        return fig, (ax1,ax2)
+
 def pose2ToNumpy(pose2: gtsam.Pose2):
     return np.array([pose2.x(),pose2.y(),pose2.theta()])
-
-def rot2(theta,v):
-    Q = np.array([[np.cos(theta),-np.sin(theta)],
-                  [np.sin(theta),np.cos(theta)]])
-    return Q @ v

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import utils
+import transforms2D
 
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
@@ -21,10 +22,10 @@ class robot:
 
         #starting location
         if pose is None: #not set in defaults as numpy arrays are mutable! it causes the class to rememmber inital value
-            pose = np.array([0.0,
+            pose = np.array([0.0, #essentialy is [t_w_w2e,theta]
                              0.0,
                              0.0])
-        self.pose = pose # pose of robot [x,y,theta]
+        self.pose = pose
         
         #sensor physics
         self.FOV = FOV #radians
@@ -42,7 +43,8 @@ class robot:
     def moveAndMeasureOdometrey(self,odom): 
         #odom = [dx,dy,dtheta] are in system k, when trasitioning to kp1
         self.pose[2] += odom[2] #add dtheta 
-        dxdy = utils.rot2(self.pose[2],odom[:2]) #find translation in global coordiantes
+        Re2w = transforms2D.R2(-self.pose[2])
+        dxdy = Re2w @ odom[:2] #find relative translation in global coordiantes
         self.pose[0] += dxdy[0] #update
         self.pose[1] += dxdy[1]
         
@@ -61,14 +63,14 @@ class robot:
             return measurements
 
     def rgbdMeasModel(self,lm):
-        gt_lm_ego = self.world2Ego(np.hstack((lm.x,lm.y)))
+        gt_lm_ego = self.world2Ego(np.vstack((lm.x,lm.y)))
 
-        gt_angle = np.arctan2(gt_lm_ego[1],gt_lm_ego[0])
+        gt_angle = np.arctan2(gt_lm_ego[1],gt_lm_ego[0])[0] #np.arctan2 returns np.array when I want it to be float for later
         gt_r = np.linalg.norm(gt_lm_ego)
 
         if (gt_angle > -self.FOV/2 and gt_angle < +self.FOV/2) \
              and (gt_r < self.range): #if viewed, compute noisy measurement
-            mu = np.array([gt_r,gt_angle]).squeeze() #must be 1D numpy array
+            mu = np.array([gt_r,gt_angle])
             meas_dr, meas_dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
             return meas_landmark(meas_dr,meas_dangle,lm.classLabel,lm.index, self.rgbd_noise)
 
@@ -96,18 +98,18 @@ class robot:
             self.graphic_rgbd, = ax.fill(xy[:,0],xy[:,1], facecolor = "b" , alpha=0.1, animated = False)
 
     def world2Ego(self,xyWorld):
-        theta = self.pose[2]
-        Rworld2robot = np.array([[np.cos(-theta),-np.sin(-theta)],
-                        [np.sin(-theta),np.cos(-theta)]])
-        xyRobot = Rworld2robot @ (xyWorld - self.pose[:2])
-        return xyRobot
-
-    def ego2World(self,xyRobot):
         #accepts 2XM and return 2XM
-        theta = self.pose[2]
-        Rrobot2world = np.array([[np.cos(theta),-np.sin(theta)],
-                        [np.sin(theta),np.cos(theta)]])
-        xyWorld = Rrobot2world @ xyRobot + np.atleast_2d(self.pose[:2]).T
+        Rw2e = transforms2D.R2(-self.pose[2])
+        t_e_e2w = Rw2e @ (-np.atleast_2d(self.pose[:2]).T)
+
+        xyEgo = Rw2e @ xyWorld + t_e_e2w
+        return xyEgo
+
+    def ego2World(self,xyEgo):
+        #accepts 2XM and return 2XM
+        Re2w = transforms2D.R2(self.pose[2])
+        t_w_w2e = np.atleast_2d(self.pose[:2]).T
+        xyWorld = Re2w @ xyEgo + t_w_w2e
         return xyWorld
         
 

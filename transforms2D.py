@@ -33,9 +33,10 @@ def odomTFromTrajT(T):
         dT.append(relativeTransform(T[ii-1],T[ii]))
     return dT
 
-def Te2w_to_pose(Te2w):
-    v = Te2w[:2,0] #[cos,sin]
+def T_to_components(T):
+    #if Te2w then this transform it to "pose"
+    v = T[:2,0] #[cos,sin]
     theta = np.arctan2(v[1],v[0])
-    x = Te2w[0,2]
-    y = Te2w[1,2]
+    x = T[0,2]
+    y = T[1,2]
     return x, y, theta

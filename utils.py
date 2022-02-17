@@ -40,7 +40,7 @@ def plot_cov_ellipse(pos, cov, nstd=1, ax=None, facecolor = 'none',edgecolor = '
         
         return ellip
 
-def plot_pose(axes , Re2w, t_w_w2e, axis_length: float = 0.1, covariance: np.ndarray = None):
+def plot_pose(axes , pose, axis_length: float = 0.1, covariance: np.ndarray = None):
     '''
     TAKEN FROM gtsam.utils.plot AND SLIGHTLY EDITED
     Plot a 2D pose on given axis `axes` with given `axis_length`.
@@ -48,6 +48,10 @@ def plot_pose(axes , Re2w, t_w_w2e, axis_length: float = 0.1, covariance: np.nda
     e - ego
     w - world
     '''
+    # get rotation and translation (center)
+    Re2w = pose.rotation().matrix() 
+    t_w_w2e = pose.translation()
+
     graphics = []
 
     x_axis = t_w_w2e + Re2w[:, 0] * axis_length

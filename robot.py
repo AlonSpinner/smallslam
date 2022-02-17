@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import utils
+import gtsam
 import transforms2D
 
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
-                 FOV = 60.0*np.pi/180.0, range = 1.0, pose = None, 
+                 FOV = 60.0*np.pi/180.0, range = 1.0, pose: gtsam.Pose2 = None, 
                  ax = None, markerSize=200):
 
         #input assumptions
@@ -22,9 +23,7 @@ class robot:
 
         #starting location
         if pose is None: #not set in defaults as numpy arrays are mutable! it causes the class to rememmber inital value
-            pose = np.array([0.0, #essentialy is [t_w_w2e,theta]
-                             0.0,
-                             0.0])
+            pose = gtsam.Pose2(np.eye(3))
         self.pose = pose
         
         #sensor physics
@@ -40,17 +39,8 @@ class robot:
         if ax is not None:
             self.plot(ax, markerSize = markerSize)
 
-    def moveAndMeasureOdometrey(self,odom): 
-        #odom = [dx,dy,dtheta] are in system k, when trasitioning to kp1
-        self.pose[2] += odom[2] #add dtheta 
-        Re2w = transforms2D.R2(-self.pose[2])
-        dxdy = Re2w @ odom[:2] #find relative translation in global coordiantes
-        self.pose[0] += dxdy[0] #update
-        self.pose[1] += dxdy[1]
-        
-        #note:
-        #first rotate and than add translation. Same as in transform matrix.
-        #easy to understand if you draw this 2D problem.
+    def moveAndMeasureOdometrey(self,odom: gtsam.Pose2): 
+        self.pose = self.pose.compose(odom)
         return self.odomModel(odom)
     
     def measureLandmarks(self,worldmap):
@@ -75,8 +65,9 @@ class robot:
             return meas_landmark(meas_dr,meas_dangle,lm.classLabel,lm.index, self.rgbd_noise)
 
     def odomModel(self,odom):
-        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(odom, self.odometry_noise)
-        return meas_odom(meas_dx,meas_dy,meas_dtheta, self.odometry_noise)
+        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(utils.pose2ToNumpy(odom), self.odometry_noise)
+        meas_odom = gtsam.Pose2(meas_dx,meas_dy,meas_dtheta)
+        return meas_odom
 
     def plot(self,ax = None, markerSize = 200):
         #first call to plot should have ax variable included, unless you want to open a new axes.

@@ -79,28 +79,27 @@ class robot:
 
         phi = np.linspace(-self.FOV/2,self.FOV/2,10)
         p = self.range * np.array([np.cos(phi),np.sin(phi)])
-        xy = np.vstack((self.pose[:2],self.ego2World(p).T))
+        xy = np.vstack((self.pose.translation(),self.ego2World(p).T))
 
         if self.graphic_car: #car was plotted before
-            self.graphic_car.set_offsets(self.pose[:2]) #https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
+            self.graphic_car.set_offsets(self.pose.translation()) #https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
             self.graphic_rgbd.set_xy(xy)  #https://stackoverflow.com/questions/38341722/animation-to-translate-polygon-using-matplotlib
         else:
-            self.graphic_car = ax.scatter(self.pose[0],self.pose[1],s = markerSize, c = 'k', marker = 'o')
+            self.graphic_car = ax.scatter(self.pose.x(),self.pose.y(),s = markerSize, c = 'k', marker = 'o')
             self.graphic_rgbd, = ax.fill(xy[:,0],xy[:,1], facecolor = "b" , alpha=0.1, animated = False)
 
     def world2Ego(self,xyWorld):
         #accepts 2XM and return 2XM
-        Rw2e = transforms2D.R2(-self.pose[2])
-        t_e_e2w = Rw2e @ (-np.atleast_2d(self.pose[:2]).T)
-
+        #pose rotation is Re2w, and translation is t_w_w2e
+        Rw2e = self.pose.rotation().matrix().T
+        t_e_e2w = Rw2e @ (-self.pose.translation.reshape(-1,1)) #the reshape turns  the 1D array into a column vector
         xyEgo = Rw2e @ xyWorld + t_e_e2w
         return xyEgo
 
     def ego2World(self,xyEgo):
         #accepts 2XM and return 2XM
-        Re2w = transforms2D.R2(self.pose[2])
-        t_w_w2e = np.atleast_2d(self.pose[:2]).T
-        xyWorld = Re2w @ xyEgo + t_w_w2e
+        #pose rotation is Re2w, and translation is t_w_w2e
+        xyWorld = self.pose.rotation().matrix() @ xyEgo + self.pose.translation().reshape(-1,1) #the reshape turns  the 1D array into a column vector
         return xyWorld
         
 

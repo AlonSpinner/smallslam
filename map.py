@@ -32,7 +32,7 @@ class map:
         self.classLabels = [] #will be filled laters
         self.addLandmarks(landmarks)
 
-    def fillMapRandomly(self, N, classLabels, xrange, yrange, cov = None):
+    def fillMapRandomly(self, N, classLabels, xrange, yrange, sigmas = None):
         # N - amount of landmarks
         # classLabels - list of strings
         # xrange, yrange - tuples
@@ -42,9 +42,9 @@ class map:
             xy = np.array([np.random.uniform(xrange[0],xrange[1]),
                            np.random.uniform(yrange[0],yrange[1])])  
 
-            # if sigmas is not None:
-                # rootcov = np.random.uniform(low=sigmas[0], high=sigmas[1], size=(2,2))
-                # cov = rootcov @ rootcov.T #enforce symmetric and positive definite: https://mathworld.wolfram.com/PositiveDefiniteMatrix.html
+            if sigmas is not None:
+                rootcov = np.random.uniform(low=sigmas[0], high=sigmas[1], size=(2,2))
+                cov = rootcov @ rootcov.T #enforce symmetric and positive definite: https://mathworld.wolfram.com/PositiveDefiniteMatrix.html
                       
             landmarks[ii] = landmark(xy, 
                                      classLabel = np.random.choice(classLabels),
@@ -78,7 +78,7 @@ class map:
                     }
         return semantics
 
-    def plot(self,ax = None, plotIndex = False, plotCov = False):
+    def plot(self,ax = None, plotIndex = False, plotCov = False, markerSize = 10):
         if ax == None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
@@ -95,7 +95,7 @@ class map:
                                 index = index, 
                                 markerColor = self.colors[ii].reshape(1,-1), 
                                 markerShape = self.markersList[ii], 
-                                markerSize = 10,
+                                markerSize = markerSize,
                                 textColor = 'k')
 
     #define color for each classLabel.

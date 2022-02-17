@@ -32,15 +32,23 @@ class map:
         self.classLabels = [] #will be filled laters
         self.addLandmarks(landmarks)
 
-    def fillMapRandomly(self,N,classLabels,xrange,yrange):
+    def fillMapRandomly(self, N, classLabels, xrange, yrange, cov = None):
         # N - amount of landmarks
         # classLabels - list of strings
         # xrange, yrange - tuples
         landmarks = [None] * N
+
         for ii in range(N):
-            landmarks[ii] = landmark(x = np.random.uniform(xrange[0],xrange[1]),
-                                        y = np.random.uniform(yrange[0],yrange[1]),
-                                        classLabel = np.random.choice(classLabels))
+            xy = np.array([np.random.uniform(xrange[0],xrange[1]),
+                           np.random.uniform(yrange[0],yrange[1])])  
+
+            # if sigmas is not None:
+                # rootcov = np.random.uniform(low=sigmas[0], high=sigmas[1], size=(2,2))
+                # cov = rootcov @ rootcov.T #enforce symmetric and positive definite: https://mathworld.wolfram.com/PositiveDefiniteMatrix.html
+                      
+            landmarks[ii] = landmark(xy, 
+                                     classLabel = np.random.choice(classLabels),
+                                     cov = cov)
         self.addLandmarks(landmarks)
 
     def addLandmarks(self,landmarks):
@@ -83,7 +91,7 @@ class map:
             cov = None if plotCov is False else lm.cov
             index = None if plotIndex is False else lm.index
             
-            utils.plot_landmark(ax, loc = (lm.x,lm.y), cov = cov, 
+            utils.plot_landmark(ax, loc = lm.xy, cov = cov, 
                                 index = index, 
                                 markerColor = self.colors[ii].reshape(1,-1), 
                                 markerShape = self.markersList[ii], 
@@ -100,13 +108,15 @@ class map:
         return np.random.permutation(plt.cm.get_cmap(mapname,N).colors) #permuate to make colors more distinguishable if not alot of classes are used    
 
 class landmark: #need to work on this later... switch landmark dictionary representation to class
-    def __init__(self,x = 0, y = 0, classLabel = 'clutter', cov = [], index = []):
-        self.x = x
-        self.y = y
+    def __init__(self, xy = None, classLabel = 'clutter', cov = None, index = None):
+        
+        if xy is None:
+            xy = np.array([0,0])
+
+        self.xy = xy
         self.classLabel = classLabel
         self.cov = cov
         self.index = index
-        return
 
 
     

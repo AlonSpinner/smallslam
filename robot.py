@@ -66,8 +66,8 @@ class robot:
 
     def odomModel(self,odom):
         meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(utils.pose2ToNumpy(odom), self.odometry_noise)
-        meas_odom = gtsam.Pose2(meas_dx,meas_dy,meas_dtheta)
-        return meas_odom
+        dpose = gtsam.Pose2(meas_dx,meas_dy,meas_dtheta)
+        return meas_odom(dpose,self.odometry_noise)
 
     def plot(self,ax = None, markerSize = 200):
         #first call to plot should have ax variable included, unless you want to open a new axes.
@@ -115,10 +115,8 @@ class meas_landmark:
 
 class meas_odom:
     # data container
-    def __init__(self, dx = 0, dy = 0, dtheta = 0, cov = []):
-            self.dx = dx
-            self.dy = dy
-            self.dtheta = dtheta
+    def __init__(self, dpose: gtsam.Pose2, cov = []):
+            self.dpose = dpose
             self.cov = cov
     
 

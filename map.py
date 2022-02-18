@@ -45,6 +45,8 @@ class map:
             if sigmas is not None:
                 rootcov = np.random.uniform(low=sigmas[0], high=sigmas[1], size=(2,2))
                 cov = rootcov @ rootcov.T #enforce symmetric and positive definite: https://mathworld.wolfram.com/PositiveDefiniteMatrix.html
+            else:
+                cov = None
                       
             landmarks[ii] = landmark(xy, 
                                      classLabel = np.random.choice(classLabels),

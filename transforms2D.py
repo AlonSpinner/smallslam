@@ -18,6 +18,7 @@ def inverseTransform(Ta2b):
     return Tb2a
 
 def Rt2T(R,t):
+    #T - 3x3 matrix, t - 2x1 matrix, R - 2x2 matrix
     M2x3 = np.hstack([R,t])
     M1x3 = np.array([[0, 0, 1]])
     return np.vstack([M2x3,M1x3])

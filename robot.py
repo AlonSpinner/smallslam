@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import utils
 import gtsam
-import transforms2D
+from map import landmark
 
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
@@ -21,9 +21,9 @@ class robot:
             rgbd_noise[0,0] = 0.01**2 #depth noise
             rgbd_noise[1,1] = np.radians(1)**2 #angular noise
 
-        #starting location
+        #starting pose
         if pose is None: #not set in defaults as numpy arrays are mutable! it causes the class to rememmber inital value
-            pose = gtsam.Pose2(np.eye(3))
+            pose = gtsam.Pose2(0,0,0)
         self.pose = pose
         
         #sensor physics
@@ -52,11 +52,9 @@ class robot:
                         measurements.append(meas)
             return measurements
 
-    def rgbdMeasModel(self,lm):
-        gt_lm_ego = self.world2Ego(np.vstack((lm.x,lm.y)))
-
-        gt_angle = np.arctan2(gt_lm_ego[1],gt_lm_ego[0])[0] #np.arctan2 returns np.array when I want it to be float for later
-        gt_r = np.linalg.norm(gt_lm_ego)
+    def rgbdMeasModel(self,lm: landmark):
+        gt_angle = self.pose.bearing(lm.xy).theta()
+        gt_r = self.pose.range(lm.xy)
 
         if (gt_angle > -self.FOV/2 and gt_angle < +self.FOV/2) \
              and (gt_r < self.range): #if viewed, compute noisy measurement
@@ -77,29 +75,30 @@ class robot:
             ax.set_xlabel('x'); ax.set_ylabel('y'); 
             ax.set_aspect('equal'); ax.grid()
 
+        #rgbd - cone graphics values
         phi = np.linspace(-self.FOV/2,self.FOV/2,10)
-        p = self.range * np.array([np.cos(phi),np.sin(phi)])
-        xy = np.vstack((self.pose.translation(),self.ego2World(p).T))
+        xy_ego = self.range * np.array([np.cos(phi),np.sin(phi)])
+        xy_world = np.vstack((self.pose.translation(),self.ego2World(xy_ego).T))
 
         if self.graphic_car: #car was plotted before
             self.graphic_car.set_offsets(self.pose.translation()) #https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
-            self.graphic_rgbd.set_xy(xy)  #https://stackoverflow.com/questions/38341722/animation-to-translate-polygon-using-matplotlib
+            self.graphic_rgbd.set_xy(xy_world)  #https://stackoverflow.com/questions/38341722/animation-to-translate-polygon-using-matplotlib
         else:
             self.graphic_car = ax.scatter(self.pose.x(),self.pose.y(),s = markerSize, c = 'k', marker = 'o')
-            self.graphic_rgbd, = ax.fill(xy[:,0],xy[:,1], facecolor = "b" , alpha=0.1, animated = False)
+            self.graphic_rgbd, = ax.fill(xy_world[:,0],xy_world[:,1], facecolor = "b" , alpha=0.1, animated = False)
 
-    def world2Ego(self,xyWorld):
+    def world2Ego(self,xyWorld): #currently not used
         #accepts 2XM and return 2XM
         #pose rotation is Re2w, and translation is t_w_w2e
         Rw2e = self.pose.rotation().matrix().T
-        t_e_e2w = Rw2e @ (-self.pose.translation.reshape(-1,1)) #the reshape turns  the 1D array into a column vector
+        t_e_e2w = Rw2e @ (-self.pose.translation().reshape(2,1)) #the reshape turns  the 1D array into a column vector
         xyEgo = Rw2e @ xyWorld + t_e_e2w
         return xyEgo
 
-    def ego2World(self,xyEgo):
+    def ego2World(self,xyEgo): #curently only used for rgbd graphics
         #accepts 2XM and return 2XM
         #pose rotation is Re2w, and translation is t_w_w2e
-        xyWorld = self.pose.rotation().matrix() @ xyEgo + self.pose.translation().reshape(-1,1) #the reshape turns  the 1D array into a column vector
+        xyWorld = self.pose.rotation().matrix() @ xyEgo + self.pose.translation().reshape(2,1) #the reshape turns  the 1D array into a column vector
         return xyWorld
         
 

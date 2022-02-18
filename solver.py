@@ -9,9 +9,9 @@ class solver:
     
     def __init__(self,X0 = None,X0cov = None, semantics = None ,ax = None):
         if X0 is None:
-            X0 = (0,0,0)
+            X0 = gtsam.Pose2((0,0,0))
         if X0cov is None:
-            X0cov = 0.01* np.eye(3)
+            X0cov = 0.001* np.eye(3)
 
         #initalize solver
         self.graph = gtsam.NonlinearFactorGraph()
@@ -19,7 +19,6 @@ class solver:
         self.current_estimate = self.initial_estimate
 
         #insert X0 to initial_estiamte and graph as prior
-        X0 = gtsam.Pose2(X0)
         X0_prior_noise = gtsam.noiseModel.Gaussian.Covariance(X0cov)
         self.initial_estimate.insert(X(0), X0)
         self.graph.push_back(gtsam.PriorFactorPose2(X(0), X0, X0_prior_noise))
@@ -61,11 +60,11 @@ class solver:
         
         factor = gtsam.BetweenFactorPose2(
                         X(self.i-1), X(self.i), 
-                        gtsam.Pose2(meas.dx, meas.dy, meas.dtheta), odom_noise)
+                        meas.dpose, odom_noise)
         self.graph.push_back(factor)
 
         pose = self.current_estimate.atPose2(X(self.i-1))
-        initial_Xi = pose.compose(gtsam.Pose2(meas.dx, meas.dy, meas.dtheta))
+        initial_Xi = pose.compose(meas.dpose)
         self.initial_estimate.insert(X(self.i), initial_Xi)
     
     def addlandmarkMeasurement(self,meas: meas_landmark):
@@ -80,11 +79,12 @@ class solver:
             
             self.seen_landmarks["index"].append(meas.index)
             self.seen_landmarks["classLabel"].append(meas.classLabel)
-            
+
             pose = self.initial_estimate.atPose2(X(self.i))
-            dx = meas.range * np.cos(pose.theta()+meas.angle)
-            dy = meas.range * np.sin(pose.theta()+meas.angle)
-            initial_L = gtsam.Point2(pose.x()+dx, pose.y()+dy)
+            xy_ego = meas.range * np.array([np.cos(meas.angle),np.sin(meas.angle)])
+            xy_world = pose.transformFrom((xy_ego))
+            initial_L = gtsam.Point2(xy_world)
+
             self.initial_estimate.insert(L(meas.index), initial_L)
 
     def plot_landmarks(self,plotIndex = False, plotSemantics = False):
@@ -134,8 +134,6 @@ class solver:
         while self.current_estimate.exists(X(ii)):
             cov = marginals.marginalCovariance(X(ii)) if plotCov is True else None
             pose = self.current_estimate.atPose2(X(ii))
-            Rp2g = pose.rotation().matrix()  # rotation from pose to global
-            origin = pose.translation()
 
-            self.graphics_poses.append(utils.plot_pose(self.ax, Rp2g, origin, axis_length = axis_length, covariance = cov))
+            self.graphics_poses.append(utils.plot_pose(self.ax, pose, axis_length = axis_length, covariance = cov))
             ii +=1

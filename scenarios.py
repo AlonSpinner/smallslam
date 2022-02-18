@@ -2,12 +2,13 @@ import numpy as np
 import map
 import robot
 import utils
+import gtsam
 
 def scenario1():
     np.random.seed(seed=2) #this is important. affects measurements aswell
 
     #------Build worldmap
-    xrange = (-3,1); yrange = (-2,3)
+    xrange = (-2,2); yrange = (-2,2)
     fig , ax = utils.spawnWorld(xrange, yrange)
     
     #------landmarks
@@ -18,15 +19,15 @@ def scenario1():
     worldMap.plot(ax = ax, plotIndex = True,plotCov = False)
 
     #------Spawn Robot
-    car = robot.robot(ax = ax)
-    car.range = 2
+    pose0 = gtsam.Pose2(1.0,0.0,np.pi/2)
+    car = robot.robot(ax = ax, pose = pose0, FOV = np.radians(90), range = 2)
     
     #------ ground truth odometrey
-    dx = 0.2; dy = 0.2; dtheta =0.2
-    odom = [np.array([dx,dy,dtheta])] * 50
-    odom = [np.array([0.0,0.0,0.0])]+ odom 
+    r = 1; m = 20
+    dx = 0.309017 ;dy = 0.0489435; dtheta = 0.314159
+    gt_odom = [gtsam.Pose2(dx,dy,dtheta)] * 2*m
 
-    return car, worldMap, ax, fig, odom
+    return car, worldMap, ax, fig, gt_odom
 
 
 def scenario2():

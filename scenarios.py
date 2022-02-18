@@ -50,7 +50,7 @@ def scenario2():
     
     #------ ground truth odometrey
     dx = 1; dy = 0; dtheta =0
-    odom = [np.array([dx,dy,dtheta])] * 100
+    odom = [gtsam.Pose2(dx,dy,dtheta)] * 100
 
     return car, worldMap, axWorld, axError,  fig, odom
 
@@ -74,7 +74,7 @@ def scenario3():
     
     #------ ground truth odometrey
     dx = 1; dy = 0; dtheta =0
-    odom = [np.array([dx,dy,dtheta])] * 100
+    odom = [gtsam.Pose2(dx,dy,dtheta)] * 100
 
     return car, worldMap, axWorld, axError,  fig, odom
 
@@ -98,7 +98,7 @@ def scenario4():
     
     #------ ground truth odometrey
     dx = 1; dy = 0; dtheta =0
-    odom = [np.array([dx,dy,dtheta])] * 100
+    odom = [gtsam.Pose2(dx,dy,dtheta)] * 100
 
     return car, worldMap, axWorld, axError, fig, odom
 
@@ -110,10 +110,10 @@ def scenario5():
     fig , (axWorld,axError) = utils.spawnWorld(xrange, yrange, type = "world and error")
     
     #------landmarks
-    N = 100 
-    semantics = ("table","MEP","chair")
+    N = 10
+    semantics = ("table","chair")
     worldMap = map.map()
-    #worldMap.fillMapRandomly(N,semantics,xrange,yrange)
+    worldMap.fillMapRandomly(N,semantics,xrange,yrange)
     worldMap.plot(ax = axWorld, plotIndex = False,plotCov = False)
 
     #------Spawn Robot
@@ -122,11 +122,11 @@ def scenario5():
     
     #------ ground truth odometrey
     a = 20 #square side length
-    odomLine = [np.array([a/20,0,0])] * 20
-    odomTurn = [np.array([0,0,np.pi/2/5])] * 5
+    odomLine = [gtsam.Pose2(a/20,0,0)] * 20
+    odomTurn = [gtsam.Pose2(0,0,np.pi/2/5)] * 5
     
     odom = []
-    for _ in range(4):
+    for _ in range(5):
         odom = odom + odomLine + odomTurn 
 
     return car, worldMap, axWorld, axError, fig, odom

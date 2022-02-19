@@ -113,17 +113,29 @@ def scenario5():
     N = 10
     semantics = ("table","chair")
     worldMap = map.map()
-    worldMap.fillMapRandomly(N,semantics,xrange,yrange)
-    worldMap.plot(ax = axWorld, plotIndex = False,plotCov = False)
+    worldMap.fillMapRandomly(N,semantics,xrange,yrange,sigmarange = (-0.5,0.5))
+    worldMap.plot(ax = axWorld, plotIndex = True,plotCov = False)
 
     #------Spawn Robot
-    car = robot.robot(ax = axWorld, FOV = np.radians(90), markerSize = 50)
+    odometry_noise = np.zeros((3,3))
+    odometry_noise[0,0] = 0.5**2 #dx noise
+    odometry_noise[1,1] = 0.5**2 #dy noise
+    odometry_noise[2,2] =np.radians(5)**2 #angular noise
+
+    rgbd_noise = np.zeros((2,2))
+    rgbd_noise[0,0] = 0.1**2 #depth noise
+    rgbd_noise[1,1] = np.radians(1)**2 #angular noise
+
+    car = robot.robot(ax = axWorld, FOV = np.radians(90), markerSize = 50, 
+                      odometry_noise = odometry_noise, rgbd_noise = rgbd_noise)
     car.range = 10
     
     #------ ground truth odometrey
     a = 20 #square side length
-    odomLine = [gtsam.Pose2(a/20,0,0)] * 20
-    odomTurn = [gtsam.Pose2(0,0,np.pi/2/5)] * 5
+    rotSteps = 5
+    linSteps = 8
+    odomLine = [gtsam.Pose2(a/linSteps,0,0)] * linSteps
+    odomTurn = [gtsam.Pose2(0,0,np.pi/2/rotSteps)] * rotSteps
     
     odom = []
     for _ in range(5):

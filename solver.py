@@ -4,6 +4,7 @@ import numpy as np
 from robot import meas_odom
 from robot import meas_landmark
 import utils
+import map
 
 class solver:
     
@@ -86,6 +87,18 @@ class solver:
             initial_L = gtsam.Point2(xy_world)
 
             self.initial_estimate.insert(L(meas.index), initial_L)
+
+    def addlandmarkPrior(self, lm: map.landmark):
+        L_prior_noise = gtsam.noiseModel.Gaussian.Covariance(lm.cov) #https://gtsam.org/doxygen/a03876.html
+        Li = gtsam.Point2(lm.xy)
+        self.graph.push_back(gtsam.PriorFactorPoint2(L(lm.index), 
+                                                     Li, 
+                                                     L_prior_noise))
+ 
+        if lm.index not in self.seen_landmarks["index"]:
+            self.seen_landmarks["index"].append(lm.index)
+            self.seen_landmarks["classLabel"].append(lm.classLabel)
+            self.initial_estimate.insert(L(lm.index), Li)
 
     def plot_landmarks(self,plotIndex = False, plotSemantics = False):
         if self.ax is None:

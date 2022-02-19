@@ -10,13 +10,13 @@ class robot:
                  ax = None, markerSize=200):
 
         #input assumptions
-        if odometry_noise == None:
+        if odometry_noise is None:
             odometry_noise = np.zeros((3,3))
             odometry_noise[0,0] = 0.1**2 #dx noise
             odometry_noise[1,1] = 0.1**2 #dy noise
             odometry_noise[2,2] =np.radians(3)**2 #angular noise
 
-        if rgbd_noise == None:
+        if rgbd_noise is None:
             rgbd_noise = np.zeros((2,2))
             rgbd_noise[0,0] = 0.01**2 #depth noise
             rgbd_noise[1,1] = np.radians(1)**2 #angular noise
@@ -98,7 +98,7 @@ class robot:
     def ego2World(self,xyEgo): #curently only used for rgbd graphics
         #accepts 2XM and return 2XM
         #pose rotation is Re2w, and translation is t_w_w2e
-        xyWorld = self.pose.rotation().matrix() @ xyEgo + self.pose.translation().reshape(2,1) #the reshape turns  the 1D array into a column vector
+        xyWorld = self.pose.rotation().matrix() @ xyEgo + self.pose.translation().reshape(2,1) #the reshape turns the 1D array into a column vector
         return xyWorld
         
 

@@ -32,7 +32,7 @@ class map:
         self.classLabels = [] #will be filled laters
         self.addLandmarks(landmarks)
 
-    def fillMapRandomly(self, N, classLabels, xrange, yrange, sigmas = None):
+    def fillMapRandomly(self, N, classLabels, xrange, yrange, sigmarange = None):
         # N - amount of landmarks
         # classLabels - list of strings
         # xrange, yrange - tuples
@@ -42,8 +42,8 @@ class map:
             xy = np.array([np.random.uniform(xrange[0],xrange[1]),
                            np.random.uniform(yrange[0],yrange[1])])  
 
-            if sigmas is not None:
-                rootcov = np.random.uniform(low=sigmas[0], high=sigmas[1], size=(2,2))
+            if sigmarange is not None:
+                rootcov = np.random.uniform(low=sigmarange[0], high=sigmarange[1], size=(2,2))
                 cov = rootcov @ rootcov.T #enforce symmetric and positive definite: https://mathworld.wolfram.com/PositiveDefiniteMatrix.html
             else:
                 cov = None

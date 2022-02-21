@@ -16,8 +16,7 @@ class solver:
 
         #initalize solver
         self.graph = gtsam.NonlinearFactorGraph()
-        self.initial_estimate = gtsam.Values()
-        self.current_estimate = self.initial_estimate
+        self.initial_estimate = gtsam.Values() #only holds new variables in time step
 
         #insert X0 to initial_estiamte and graph as prior
         X0_prior_noise = gtsam.noiseModel.Gaussian.Covariance(X0cov)
@@ -25,10 +24,8 @@ class solver:
         self.graph.push_back(gtsam.PriorFactorPose2(X(0), X0, X0_prior_noise))
 
         #initalize solver isam2
-        parameters = gtsam.ISAM2Params()
-        parameters.setRelinearizeThreshold(0.1)
-        parameters.setRelinearizeSkip(1)
-        self.isam2 = gtsam.ISAM2(parameters)
+        self.isam2Initalize()
+        self.update()
 
         #time index
         self.i = 0 
@@ -52,9 +49,32 @@ class solver:
         self.isam2.update(self.graph, self.initial_estimate)
         for kk in range(N):
             self.isam2.update() #can be called additional times to perform multiple optimizer iterations
-
+        
         self.initial_estimate.clear() #inital_estimates only holds guesses for new variables.learnt from Pose2ISAM2Example.
-        self.current_estimate = self.isam2.calculateEstimate()
+
+    def calculateEstimate(self, bestEstimate = False):
+        if bestEstimate:
+            # https://gtsam.org/doxygen/4.0.0/a03643.html#a9d6f2b0d018f817f64fee6abdaa413ff
+            #compute estimate using full back-substituion
+            return self.isam2.calculateBestEstimate()
+        else:
+            return self.isam2.calculateEstimate()
+
+    def globalSolverStep(self):
+            params = gtsam.LevenbergMarquardtParams()
+            isam2_estimate = self.calculateEstimate(bestEstimate = True)
+            optimizer = gtsam.LevenbergMarquardtOptimizer(self.graph, 
+                                                          isam2_estimate,
+                                                          params)
+            global_estimate = optimizer.optimize()
+            self.isam2Initalize() #reinitalize Isam2
+            self.isam2.update(self.graph, global_estimate) #first update with global solver
+
+    def isam2Initalize(self):
+        parameters = gtsam.ISAM2Params()
+        parameters.setRelinearizeThreshold(0.1)
+        parameters.setRelinearizeSkip(1)
+        self.isam2 = gtsam.ISAM2(parameters)
            
     def addOdomMeasurement(self,meas: meas_odom):
         odom_noise = gtsam.noiseModel.Gaussian.Covariance(meas.cov) #https://gtsam.org/doxygen/a03876.html
@@ -64,7 +84,7 @@ class solver:
                         meas.dpose, odom_noise)
         self.graph.push_back(factor)
 
-        pose = self.current_estimate.atPose2(X(self.i-1))
+        pose = self.isam2.calculateEstimatePose2(X(self.i-1))
         initial_Xi = pose.compose(meas.dpose)
         self.initial_estimate.insert(X(self.i), initial_Xi)
     
@@ -100,13 +120,27 @@ class solver:
             self.seen_landmarks["classLabel"].append(lm.classLabel)
             self.initial_estimate.insert(L(lm.index), Li)
 
-    def plot_landmarks(self,plotIndex = False, plotSemantics = False):
+    def plot(self,poses = True ,poses_axis_length = 0.1, poses_Cov = True, 
+                  landmarks = True, landmarks_Index = False, landmarks_Semantics = False):
+        current_estimate = self.calculateEstimate(bestEstimate = True)
+        marginals = gtsam.Marginals(self.graph, current_estimate)
+
+        #wrapper function for plot_poses and plot_landmarks so we wont compute current_estimate and marginals twice
+
+        if poses:
+            self.plot_poses(current_estimate, marginals,
+                            axis_length = poses_axis_length, 
+                            plotCov = poses_Cov)
+        if landmarks:
+            self.plot_landmarks(current_estimate, marginals,
+                                    plotIndex = landmarks_Index, 
+                                    plotSemantics = landmarks_Semantics)
+
+    def plot_landmarks(self, current_estimate, marginals, plotIndex = False, plotSemantics = False):
         if self.ax is None:
             raise Exception("you must provide an axes handle to solver if you want to plot")
         if plotSemantics is True and self.semantics is None:
             raise Exception("You must provide semantics if you want to plot them. Currently empty.")
-
-        marginals = gtsam.Marginals(self.graph, self.current_estimate)
 
         #remove old drawings if exist
         for graphics_lm in self.graphics_landmarks:
@@ -126,16 +160,14 @@ class solver:
 
             #plot
             cov = marginals.marginalCovariance(L(seen_lm_index))
-            loc = self.current_estimate.atPoint2(L(seen_lm_index))
+            loc = current_estimate.atPoint2(L(seen_lm_index))
             self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov,
                 markerColor = 'b', markerShape = markerShape, markerSize = 3,
                 index = index4plot, textColor = 'b'))
 
-    def plot_poses(self,axis_length = 0.1, plotCov = True):
+    def plot_poses(self, current_estimate, marginals, axis_length = 0.1, plotCov = True):
         if self.ax is None:
             raise Exception("you must provide an axes handle to solver if you want to plot")
-
-        marginals = gtsam.Marginals(self.graph, self.current_estimate)
 
         #remove old drawings if exist
         for graphics_pose in self.graphics_poses:
@@ -144,9 +176,9 @@ class solver:
 
         self.graphics_poses = []
         ii = 0
-        while self.current_estimate.exists(X(ii)):
+        while current_estimate.exists(X(ii)):
             cov = marginals.marginalCovariance(X(ii)) if plotCov is True else None
-            pose = self.current_estimate.atPose2(X(ii))
+            pose = current_estimate.atPose2(X(ii))
 
             self.graphics_poses.append(utils.plot_pose(self.ax, pose, axis_length = axis_length, covariance = cov))
             ii +=1

@@ -27,7 +27,7 @@ class solver:
         #initalize solver isam2
         parameters = gtsam.ISAM2Params()
         parameters.setRelinearizeThreshold(0.1)
-        #parameters.setRelinearizeSkip = 1 #doesnt work in my version of gtsam? should be setRelinearizeSkip? https://11187901375483992154.googlegroups.com/attach/3dde15f735496/sample.py?part=0.1&view=1&vt=ANaJVrGdeX_f8IFLF79358ZbSwCtgO6VOunOP2ZY6bSWzpjOHPOyvEvfcByKCCZDJm70YKtFyov_cxWbY67fsKT8XhhkAOSdHQ0VvoHdQ_EMAqR059Oh6XA
+        parameters.setRelinearizeSkip(1)
         self.isam2 = gtsam.ISAM2(parameters)
 
         #time index

@@ -79,7 +79,7 @@ def scenario3():
     return car, worldMap, axWorld, axError,  fig, odom
 
 def scenario4():
-    np.random.seed(seed=3) #this is important. affects measurements aswell
+    np.random.seed(seed=2) #this is important. affects measurements aswell
 
     #------Build worldmap
     xrange = (-10,+100); yrange = (-5,+30)

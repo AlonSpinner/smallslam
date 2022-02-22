@@ -60,9 +60,11 @@ class solver:
         else:
             return self.isam2.calculateEstimate()
 
-    def globalSolverStep(self):
-            params = gtsam.LevenbergMarquardtParams()
+    def optimizeFullState(self):
+            self.update() #update isam2 with newly added priors and clear inital_estimate
             isam2_estimate = self.calculateEstimate(bestEstimate = True)
+
+            params = gtsam.LevenbergMarquardtParams()
             optimizer = gtsam.LevenbergMarquardtOptimizer(self.graph, 
                                                           isam2_estimate,
                                                           params)

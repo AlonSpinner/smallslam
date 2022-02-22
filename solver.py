@@ -121,8 +121,10 @@ class solver:
             self.initial_estimate.insert(L(lm.index), Li)
 
     def plot(self,poses = True ,poses_axis_length = 0.1, poses_Cov = True, 
-                  landmarks = True, landmarks_Index = False, landmarks_Semantics = False):
-        current_estimate = self.calculateEstimate(bestEstimate = True)
+                  landmarks = True, landmarks_Index = False, landmarks_Semantics = False,
+                  bestEstimate = False):
+        
+        current_estimate = self.calculateEstimate(bestEstimate = bestEstimate)
         marginals = gtsam.Marginals(self.graph, current_estimate)
 
         #wrapper function for plot_poses and plot_landmarks so we wont compute current_estimate and marginals twice

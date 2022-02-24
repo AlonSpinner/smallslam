@@ -5,9 +5,16 @@ def R2(theta):
                   [np.sin(theta),np.cos(theta)]])
 
 def relativeTransform(Ta2w,Tb2w):
+    #Xb - Xa
     Tw2b = inverseTransform(Tb2w)
     Ta2b = Tw2b @ Ta2w
     return Ta2b
+
+def composeTransform(Ta2w,Ta2b):
+    #Xa + dX
+    Tb2a = inverseTransform(Ta2b)
+    Tb2w = Ta2w @ Tb2a
+    return Tb2w
 
 def inverseTransform(Ta2b):
     #Ta2b = [Ra2b,t_b_b2a ; 0 0 1] - size 3x3
@@ -28,12 +35,6 @@ def T2Rt(T):
     t = T[:2,[2]] #having [2] instead of just 2 keeps the 2d dimensions of the vector
     return R,t
 
-def odomTFromTrajT(T):
-    dT = []
-    for ii in range(1,len(T)):
-        dT.append(relativeTransform(T[ii-1],T[ii]))
-    return dT
-
 def T_to_components(T):
     #if Te2w then this transform it to "pose"
     v = T[:2,0] #[cos,sin]
@@ -41,3 +42,15 @@ def T_to_components(T):
     x = T[0,2]
     y = T[1,2]
     return x, y, theta
+
+def components_to_T(x,y,theta):
+    R = R2(theta)
+    t = np.array[[x],
+                 [y]]
+    return Rt2T(R,t)
+
+def odomTFromTrajT(T):
+    dT = []
+    for ii in range(1,len(T)):
+        dT.append(relativeTransform(T[ii-1],T[ii]))
+    return dT

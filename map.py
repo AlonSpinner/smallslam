@@ -55,11 +55,11 @@ class map:
 
     def addLandmarks(self,landmarks):
         self.landmarks.extend(landmarks)
-        self.defineClasLabelsFromLandmarks()
+        self.defineClassLabelsFromLandmarks()
         self.indexifyLandmarks()
 
     #goes over all landmarks to find classLabels.
-    def defineClasLabelsFromLandmarks(self):
+    def defineClassLabelsFromLandmarks(self):
         if self.landmarks: #not empty
             classLabels = [lm.classLabel for lm in self.landmarks]
             classLabels = list(set(classLabels))
@@ -109,7 +109,7 @@ class map:
         np.random.seed(seed=0) #ensure colors-labels are the same for each map 
         return np.random.permutation(plt.cm.get_cmap(mapname,N).colors) #permuate to make colors more distinguishable if not alot of classes are used    
 
-class landmark: #need to work on this later... switch landmark dictionary representation to class
+class landmark:
     def __init__(self, xy = None, classLabel = 'clutter', cov = None, index = None):
         
         if xy is None:

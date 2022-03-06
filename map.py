@@ -53,10 +53,11 @@ class map:
                                      cov = cov)
         self.addLandmarks(landmarks)
 
-    def addLandmarks(self,landmarks):
+    def addLandmarks(self,landmarks, indexify = True):
         self.landmarks.extend(landmarks)
         self.defineClassLabelsFromLandmarks()
-        self.indexifyLandmarks()
+        if indexify:
+            self.indexifyLandmarks()
 
     #goes over all landmarks to find classLabels.
     def defineClassLabelsFromLandmarks(self):
@@ -107,7 +108,11 @@ class map:
 
         # before hard coded colors, was initalized with: self.colors = self.randomColors('viridis',len(self.markersList))
         np.random.seed(seed=0) #ensure colors-labels are the same for each map 
-        return np.random.permutation(plt.cm.get_cmap(mapname,N).colors) #permuate to make colors more distinguishable if not alot of classes are used    
+        return np.random.permutation(plt.cm.get_cmap(mapname,N).colors) #permuate to make colors more distinguishable if not alot of classes are used
+
+    def interpolateLines(self,N):
+        for lines in self.lineLandmarks:
+             self.addLandmarks(lines.interpolate(N))
 
 class landmark:
     def __init__(self, xy = None, classLabel = 'clutter', cov = None, index = None):
@@ -119,6 +124,23 @@ class landmark:
         self.classLabel = classLabel
         self.cov = cov
         self.index = index
+
+
+class line_landmark:
+    def __init__(self, lm1: landmark, lm2: landmark):
+        #must be same classLabel
+        self.landmark1 = lm1
+        self.landmark2 = lm2 
+
+    def interpolate(self,N):
+        uvec = np.linspace(0,1,N)
+        landmarks = []
+        for u in uvec:
+            xy = self.landmark1.xy + u*(self.landmark2.xy-self.landmark1.xy)
+            cov = self.landmark1.cov + u*(self.landmark2.cov-self.landmark1.cov)
+            landmarks.append(landmark(xy = xy,cov = cov, classLabel = self.landmark1.classLabel))
+
+        return landmarks
 
 
     

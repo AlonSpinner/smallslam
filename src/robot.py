@@ -1,8 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import utils
+
 import gtsam
-from map import landmark
+
+import utils.datatypes as datatypes
+from utils.datatypes import pose2ToNumpy
+from utils.datatypes import landmark
+from utils.datatypes import meas_landmark
+from utils.datatypes import meas_odom
+
 
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
@@ -41,18 +47,17 @@ class robot:
 
     def moveAndMeasureOdometrey(self,odom: gtsam.Pose2): 
         self.pose = self.pose.compose(odom)
-        return self.odomModel(odom)
+        return self.noiseyOdomModel(odom)
     
-    def measureLandmarks(self,worldmap):
-            #world - list of semanticly labled landmarks: [[L1_x,L1_y,L1_class],...]
+    def measureLandmarks(self,landmarks: list(landmark)):
             measurements = []
-            for lm in worldmap.landmarks:
-                    meas = self.rgbdMeasModel(lm)
+            for lm in landmarks:
+                    meas = self.noiseyRgbdModel(lm)
                     if meas: #if measurement took place
                         measurements.append(meas)
             return measurements
 
-    def rgbdMeasModel(self,lm: landmark):
+    def noiseyRgbdModel(self,lm: landmark):
         gt_angle = self.pose.bearing(lm.xy).theta()
         gt_r = self.pose.range(lm.xy)
 
@@ -62,19 +67,12 @@ class robot:
             meas_dr, meas_dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
             return meas_landmark(meas_dr,meas_dangle,lm.classLabel,lm.index, self.rgbd_noise)
 
-    def odomModel(self,odom):
-        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(utils.pose2ToNumpy(odom), self.odometry_noise)
+    def noiseyOdomModel(self,odom):
+        meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(pose2ToNumpy(odom), self.odometry_noise)
         dpose = gtsam.Pose2(meas_dx,meas_dy,meas_dtheta)
         return meas_odom(dpose,self.odometry_noise)
 
-    def plot(self,ax = None, markerSize = 200):
-        #first call to plot should have ax variable included, unless you want to open a new axes.
-        if ax == None and not self.graphic_car: #no ax given, and car was not plotted before
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-            ax.set_xlabel('x'); ax.set_ylabel('y'); 
-            ax.set_aspect('equal'); ax.grid()
-
+    def plot(self,ax: plt.Axes, markerSize = 200):
         #rgbd - cone graphics values
         phi = np.linspace(-self.FOV/2,self.FOV/2,10)
         xy_ego = self.range * np.array([np.cos(phi),np.sin(phi)])
@@ -100,21 +98,5 @@ class robot:
         #pose rotation is Re2w, and translation is t_w_w2e
         xyWorld = self.pose.rotation().matrix() @ xyEgo + self.pose.translation().reshape(2,1) #the reshape turns the 1D array into a column vector
         return xyWorld
-        
-
-class meas_landmark:
-    # data container
-    def __init__(self,range = 0, angle = 0, classLabel = 'clutter', index = [], cov = []):
-        self.range = range
-        self.angle = angle
-        self.classLabel = classLabel
-        self.index = index
-        self.cov = cov
-
-class meas_odom:
-    # data container
-    def __init__(self, dpose: gtsam.Pose2, cov = []):
-            self.dpose = dpose
-            self.cov = cov
     
 

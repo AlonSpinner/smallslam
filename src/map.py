@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import utils
+import utils.plotting as plotting
+from utils.dataclasses import landmark
 
 class map:
 
@@ -83,10 +84,7 @@ class map:
 
     def plot(self,ax = None, plotIndex = False, plotCov = False, markerSize = 10):
         if ax == None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-            ax.set_xlabel('x'); ax.set_ylabel('y'); 
-            ax.set_aspect('equal'); ax.grid()
+            _, ax = plotting.spawnWorld()
 
         for lm in self.landmarks:
             ii = self.classLabels.index(lm.classLabel) #index of classLabel. used for shape and color
@@ -94,21 +92,12 @@ class map:
             cov = None if plotCov is False else lm.cov
             index = None if plotIndex is False else lm.index
             
-            utils.plot_landmark(ax, loc = lm.xy, cov = cov, 
+            plotting.plot_landmark(ax, loc = lm.xy, cov = cov, 
                                 index = index, 
                                 markerColor = self.colors[ii].reshape(1,-1), 
                                 markerShape = self.markersList[ii], 
                                 markerSize = markerSize,
                                 textColor = 'k')
-
-    #define color for each classLabel.
-    @staticmethod 
-    def randomColors(mapname,N):
-        #function out of use 
-
-        # before hard coded colors, was initalized with: self.colors = self.randomColors('viridis',len(self.markersList))
-        np.random.seed(seed=0) #ensure colors-labels are the same for each map 
-        return np.random.permutation(plt.cm.get_cmap(mapname,N).colors) #permuate to make colors more distinguishable if not alot of classes are used
 
     def interpolateLines(self,N):
         for lines in self.lineLandmarks:

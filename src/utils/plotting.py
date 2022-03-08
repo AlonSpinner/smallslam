@@ -85,7 +85,6 @@ def plot_landmark(axes, loc, cov = None, index = None,
 
 def spawnWorld(xrange, yrange,type = "world"):
     
-    
     if type == "world":
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -107,6 +106,3 @@ def spawnWorld(xrange, yrange,type = "world"):
         ax2.grid()
 
         return fig, (ax1,ax2)
-
-def pose2ToNumpy(pose2: gtsam.Pose2):
-    return np.array([pose2.x(),pose2.y(),pose2.theta()])

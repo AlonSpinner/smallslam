@@ -2,14 +2,12 @@ import numpy as np
 import gtsam
 import matplotlib.pyplot as plt
 
-import sys
-sys.path.append('..')
-import src.robot as robot
-import src.utils.plotting as plotting
+from smallslam.robot import robot
+from smallslam.utils import plotting
 
 def main():
     pose0 = gtsam.Pose2(1.0,0.0,np.pi/2)
-    car = robot.robot(pose = pose0)
+    car = robot(pose = pose0)
 
     #control inputs
     r = 1
@@ -23,7 +21,7 @@ def main():
     hist_GT, hist_DR = car.pose.translation(), car.pose.translation()
 
     #set graphics
-    fig , ax = plotting.spawnWorld(xrange = (-2*r,2*r), yrange = (-2*r,2*r))
+    _ , ax = plotting.spawnWorld(xrange = (-2*r,2*r), yrange = (-2*r,2*r))
     graphic_GT_traj, = plt.plot([], [],'ko-',markersize = 5)
     graphic_DR_traj, = plt.plot([], [],'ro-',markersize = 5)
     ax.legend(["ground truth","dead reckoning"])

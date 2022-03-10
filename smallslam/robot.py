@@ -3,12 +3,10 @@ import matplotlib.pyplot as plt
 
 import gtsam
 
-import utils.datatypes as datatypes
-from utils.datatypes import pose2ToNumpy
-from utils.datatypes import landmark
-from utils.datatypes import meas_landmark
-from utils.datatypes import meas_odom
-
+from .utils.datatypes import landmark
+from .utils.datatypes import meas_landmark
+from .utils.datatypes import meas_odom
+from .utils.datatypes import pose2ToNumpy
 
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
@@ -49,7 +47,7 @@ class robot:
         self.pose = self.pose.compose(odom)
         return self.noiseyOdomModel(odom)
     
-    def measureLandmarks(self,landmarks: list(landmark)):
+    def measureLandmarks(self,landmarks):
             measurements = []
             for lm in landmarks:
                     meas = self.noiseyRgbdModel(lm)

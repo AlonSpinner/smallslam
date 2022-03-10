@@ -2,9 +2,7 @@ import numpy as np
 import gtsam
 import matplotlib.pyplot as plt
 
-import sys
-sys.path.append('..')
-import src.utils.plotting as plotting
+from smallslam.utils import plotting
 
 def main():
     r = 1
@@ -22,7 +20,7 @@ def main():
         pose_ii.append(pose)
 
 
-    fig , ax = plotting.spawnWorld(xrange = (-2*r,2*r), yrange = (-2*r,2*r))
+    _ , ax = plotting.spawnWorld(xrange = (-2*r,2*r), yrange = (-2*r,2*r))
     for pose in pose_ii:
         plotting.plot_pose(ax ,pose)
         plt.pause(0.1)

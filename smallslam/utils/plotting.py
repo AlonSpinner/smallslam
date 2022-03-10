@@ -83,14 +83,17 @@ def plot_landmark(axes, loc, cov = None, index = None,
 
     return graphics
 
-def spawnWorld(xrange, yrange,type = "world"):
+def spawnWorld(xrange = None, yrange = None,type = "world"):
     
     if type == "world":
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.set_xlim(xrange); ax.set_ylim(yrange); 
         ax.set_xlabel('x'); ax.set_ylabel('y'); 
         ax.set_aspect('equal'); ax.grid()
+
+        if xrange is not None: ax.set_xlim(xrange)
+        if yrange is not None: ax.set_ylim(yrange)
+
         return fig, ax
     
     elif type == "world and error":

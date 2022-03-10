@@ -1,7 +1,7 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import utils.plotting as plotting
-from utils.dataclasses import landmark
+from .utils import plotting
+from .utils.datatypes import landmark
+import matplotlib.pyplot as plt
 
 class map:
 
@@ -19,15 +19,6 @@ class map:
        [0.119699, 0.61849 , 0.536347, 1.      ]])
     
     def __init__(self,landmarks = []):
-        '''
-        each landmark is dictionary:
-        {x - float,
-        y - float,
-        classLabel - string,
-        covaraince - 2x2 float matrix,
-        index - integer}. 
-        '''
-
         #instance attributes
         self.landmarks = []
         self.classLabels = [] #will be filled laters
@@ -38,6 +29,7 @@ class map:
         # classLabels - list of strings
         # xrange, yrange - tuples
         landmarks = [None] * N
+        M = len(self.landmarks)
 
         for ii in range(N):
             xy = np.array([np.random.uniform(xrange[0],xrange[1]),
@@ -48,17 +40,16 @@ class map:
                 cov = rootcov @ rootcov.T #enforce symmetric and positive definite: https://mathworld.wolfram.com/PositiveDefiniteMatrix.html
             else:
                 cov = None
-                      
-            landmarks[ii] = landmark(xy, 
+
+            landmarks[ii] = landmark(M + ii,
+                                     xy, 
                                      classLabel = np.random.choice(classLabels),
                                      cov = cov)
         self.addLandmarks(landmarks)
 
-    def addLandmarks(self,landmarks, indexify = True):
+    def addLandmarks(self,landmarks):
         self.landmarks.extend(landmarks)
         self.defineClassLabelsFromLandmarks()
-        if indexify:
-            self.indexifyLandmarks()
 
     #goes over all landmarks to find classLabels.
     def defineClassLabelsFromLandmarks(self):
@@ -70,10 +61,6 @@ class map:
             else:
                 self.classLabels = classLabels
 
-    def indexifyLandmarks(self):
-        for ii in range(len(self.landmarks)):
-                self.landmarks[ii].index = ii
-
     def exportSemantics(self):
         semantics = {
                     "classLabel": self.classLabels,
@@ -82,15 +69,15 @@ class map:
                     }
         return semantics
 
-    def plot(self,ax = None, plotIndex = False, plotCov = False, markerSize = 10):
+    def plot(self,ax : plt.Axes = None, plotIndex = False, plotCov = False, plotLegend = False ,markerSize = 10):
         if ax == None:
-            _, ax = plotting.spawnWorld()
+            fig , ax = plotting.spawnWorld()
 
         for lm in self.landmarks:
             ii = self.classLabels.index(lm.classLabel) #index of classLabel. used for shape and color
             
             cov = None if plotCov is False else lm.cov
-            index = None if plotIndex is False else lm.index
+            index = None if plotIndex is False else lm.id
             
             plotting.plot_landmark(ax, loc = lm.xy, cov = cov, 
                                 index = index, 
@@ -99,37 +86,34 @@ class map:
                                 markerSize = markerSize,
                                 textColor = 'k')
 
-    def interpolateLines(self,N):
-        for lines in self.lineLandmarks:
-             self.addLandmarks(lines.interpolate(N))
+        if plotLegend:
+            legendHandles = []
+            for ii in range(len(self.classLabels)):
+                legendHandles.append(ax.scatter(np.nan,np.nan,
+                                            marker = self.markersList[ii],
+                                            c = self.colors[ii].reshape(1,-1)))
+            fig.legend(handles = legendHandles, labels = self.classLabels)
 
-class landmark:
-    def __init__(self, xy = None, classLabel = 'clutter', cov = None, index = None):
-        
-        if xy is None:
-            xy = np.array([0,0])
-
-        self.xy = xy
-        self.classLabel = classLabel
-        self.cov = cov
-        self.index = index
+    # def interpolateLines(self,N):
+    #     for lines in self.lineLandmarks:
+    #          self.addLandmarks(lines.interpolate(N))
 
 
-class line_landmark:
-    def __init__(self, lm1: landmark, lm2: landmark):
-        #must be same classLabel
-        self.landmark1 = lm1
-        self.landmark2 = lm2 
+# class line_landmark:
+#     def __init__(self, lm1: landmark, lm2: landmark):
+#         #must be same classLabel
+#         self.landmark1 = lm1
+#         self.landmark2 = lm2 
 
-    def interpolate(self,N):
-        uvec = np.linspace(0,1,N)
-        landmarks = []
-        for u in uvec:
-            xy = self.landmark1.xy + u*(self.landmark2.xy-self.landmark1.xy)
-            cov = self.landmark1.cov + u*(self.landmark2.cov-self.landmark1.cov)
-            landmarks.append(landmark(xy = xy,cov = cov, classLabel = self.landmark1.classLabel))
+#     def interpolate(self,N):
+#         uvec = np.linspace(0,1,N)
+#         landmarks = []
+#         for u in uvec:
+#             xy = self.landmark1.xy + u*(self.landmark2.xy-self.landmark1.xy)
+#             cov = self.landmark1.cov + u*(self.landmark2.cov-self.landmark1.cov)
+#             landmarks.append(landmark(xy = xy,cov = cov, classLabel = self.landmark1.classLabel))
 
-        return landmarks
+#         return landmarks
 
 
     

@@ -63,14 +63,21 @@ class robot:
              and (gt_r < self.range): #if viewed, compute noisy measurement
             mu = np.array([gt_r,gt_angle])
             meas_dr, meas_dangle = np.random.multivariate_normal(mu, self.rgbd_noise) 
-            return meas_landmark(meas_dr,meas_dangle,lm.classLabel,lm.index, self.rgbd_noise)
+            return meas_landmark(lm.id, meas_dr, meas_dangle, self.rgbd_noise, lm.classLabel)
 
     def noiseyOdomModel(self,odom):
         meas_dx, meas_dy, meas_dtheta = np.random.multivariate_normal(pose2ToNumpy(odom), self.odometry_noise)
         dpose = gtsam.Pose2(meas_dx,meas_dy,meas_dtheta)
         return meas_odom(dpose,self.odometry_noise)
 
-    def plot(self,ax: plt.Axes, markerSize = 200):
+    def plot(self,ax: plt.Axes = None, markerSize = 200):
+        if ax is None:
+            try: 
+                ax = self.graphic_car.axes
+            except:
+                print('no axes provided to robot previously via plot() or init()')
+
+
         #rgbd - cone graphics values
         phi = np.linspace(-self.FOV/2,self.FOV/2,10)
         xy_ego = self.range * np.array([np.cos(phi),np.sin(phi)])

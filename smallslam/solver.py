@@ -1,10 +1,10 @@
 import gtsam #https://github.com/borglab/gtsam
 from gtsam.symbol_shorthand import L, X
 import numpy as np
-from robot import meas_odom
-from robot import meas_landmark
-import utils
-import map
+from .utils.datatypes import meas_landmark
+from .utils.datatypes import meas_odom
+from .utils.datatypes import landmark
+from .utils import plotting
 
 class solver:
     
@@ -32,8 +32,8 @@ class solver:
 
         #seen_landmarks to avoid initalizing landmarks twice (breaks solver)
         self.seen_landmarks = {
-                             'index': [],
-                             'classLabel': []
+                             "id": [],
+                             "classLabel": []
                               }
 
         #for extensive plotting or data assosication
@@ -94,13 +94,13 @@ class solver:
         rgbd_noise = gtsam.noiseModel.Gaussian.Covariance(meas.cov) #https://gtsam.org/doxygen/a03876.html
         
         factor = gtsam.BearingRangeFactor2D(
-                    X(self.i), L(meas.index),
+                    X(self.i), L(meas.id),
                     gtsam.Rot2.fromAngle(meas.angle), meas.range, rgbd_noise)
         self.graph.push_back(factor)
 
-        if meas.index not in self.seen_landmarks["index"]: #then mark it as seen and it add landmark to inital_estimate
+        if meas.id not in self.seen_landmarks["id"]: #then mark it as seen and it add landmark to inital_estimate
             
-            self.seen_landmarks["index"].append(meas.index)
+            self.seen_landmarks["id"].append(meas.id)
             self.seen_landmarks["classLabel"].append(meas.classLabel)
 
             pose = self.initial_estimate.atPose2(X(self.i))
@@ -108,19 +108,19 @@ class solver:
             xy_world = pose.transformFrom((xy_ego))
             initial_L = gtsam.Point2(xy_world)
 
-            self.initial_estimate.insert(L(meas.index), initial_L)
+            self.initial_estimate.insert(L(meas.id), initial_L)
 
-    def addlandmarkPrior(self, lm: map.landmark):
+    def addlandmarkPrior(self, lm: landmark):
         L_prior_noise = gtsam.noiseModel.Gaussian.Covariance(lm.cov) #https://gtsam.org/doxygen/a03876.html
         Li = gtsam.Point2(lm.xy)
-        self.graph.push_back(gtsam.PriorFactorPoint2(L(lm.index), 
+        self.graph.push_back(gtsam.PriorFactorPoint2(L(lm.id), 
                                                      Li, 
                                                      L_prior_noise))
  
-        if lm.index not in self.seen_landmarks["index"]:
-            self.seen_landmarks["index"].append(lm.index)
+        if lm.id not in self.seen_landmarks["id"]:
+            self.seen_landmarks["id"].append(lm.id)
             self.seen_landmarks["classLabel"].append(lm.classLabel)
-            self.initial_estimate.insert(L(lm.index), Li)
+            self.initial_estimate.insert(L(lm.id), Li)
 
     def plot(self,poses = True ,poses_axis_length = 0.1, poses_Cov = True, 
                   landmarks = True, landmarks_Index = False, landmarks_Semantics = False,
@@ -152,7 +152,7 @@ class solver:
                     graphic.remove()
 
         self.graphics_landmarks = []
-        for seen_lm_index, seen_lm_classLabel in zip(self.seen_landmarks["index"],self.seen_landmarks["classLabel"]):
+        for seen_lm_index, seen_lm_classLabel in zip(self.seen_landmarks["id"],self.seen_landmarks["classLabel"]):
 
             #prep for plots
             index4plot = None if plotIndex is False else seen_lm_index
@@ -165,7 +165,7 @@ class solver:
             #plot
             cov = marginals.marginalCovariance(L(seen_lm_index))
             loc = current_estimate.atPoint2(L(seen_lm_index))
-            self.graphics_landmarks.append(utils.plot_landmark(self.ax, loc = loc, cov = cov,
+            self.graphics_landmarks.append(plotting.plot_landmark(self.ax, loc = loc, cov = cov,
                 markerColor = 'b', markerShape = markerShape, markerSize = 3,
                 index = index4plot, textColor = 'b'))
 
@@ -184,5 +184,5 @@ class solver:
             cov = marginals.marginalCovariance(X(ii)) if plotCov is True else None
             pose = current_estimate.atPose2(X(ii))
 
-            self.graphics_poses.append(utils.plot_pose(self.ax, pose, axis_length = axis_length, covariance = cov))
+            self.graphics_poses.append(plotting.plot_pose(self.ax, pose, axis_length = axis_length, covariance = cov))
             ii +=1

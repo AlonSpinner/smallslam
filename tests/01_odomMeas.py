@@ -3,7 +3,7 @@ import gtsam
 import matplotlib.pyplot as plt
 
 from smallslam.robot import robot
-from smallslam.utils import plotting
+import smallslam.utils.plotting as plotting
 
 pose0 = gtsam.Pose2(1.0,0.0,np.pi/2)
 car = robot(pose = pose0)

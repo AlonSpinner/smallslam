@@ -69,7 +69,7 @@ class map:
                     }
         return semantics
 
-    def plot(self,ax : plt.Axes = None, plotIndex = False, plotCov = False, plotLegend = False ,markerSize = 10):
+    def plot(self,ax : plt.Axes = None, plotIndex = False, plotMeshIndex = False, plotCov = False, plotLegend = False ,markerSize = 10):
         if ax == None:
             fig , ax = plotting.spawnWorld()
 
@@ -78,9 +78,10 @@ class map:
             
             cov = None if plotCov is False else lm.cov
             index = None if plotIndex is False else lm.id
-            
+            meshIndex = None if plotMeshIndex is False else lm.mesh_id
             plotting.plot_landmark(ax, loc = lm.xy, cov = cov, 
-                                index = index, 
+                                index = index,
+                                meshIndex =  meshIndex,
                                 markerColor = self.colors[ii].reshape(1,-1), 
                                 markerShape = self.markersList[ii], 
                                 markerSize = markerSize,
@@ -94,26 +95,7 @@ class map:
                                             c = self.colors[ii].reshape(1,-1)))
             fig.legend(handles = legendHandles, labels = self.classLabels)
 
-    # def interpolateLines(self,N):
-    #     for lines in self.lineLandmarks:
-    #          self.addLandmarks(lines.interpolate(N))
-
-
-# class line_landmark:
-#     def __init__(self, lm1: landmark, lm2: landmark):
-#         #must be same classLabel
-#         self.landmark1 = lm1
-#         self.landmark2 = lm2 
-
-#     def interpolate(self,N):
-#         uvec = np.linspace(0,1,N)
-#         landmarks = []
-#         for u in uvec:
-#             xy = self.landmark1.xy + u*(self.landmark2.xy-self.landmark1.xy)
-#             cov = self.landmark1.cov + u*(self.landmark2.cov-self.landmark1.cov)
-#             landmarks.append(landmark(xy = xy,cov = cov, classLabel = self.landmark1.classLabel))
-
-#         return landmarks
+        return ax
 
 
     

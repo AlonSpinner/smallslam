@@ -71,7 +71,7 @@ def plot_pose(axes , pose, axis_length: float = 0.1, covariance: np.ndarray = No
 
     return graphics
 
-def plot_landmark(axes, loc, cov = None, index = None, 
+def plot_landmark(axes, loc, cov = None, index = None, meshIndex = None,
         markerShape = '.', markerColor = 'b', markerSize = 5, textColor = 'k'):
     
     graphics = []
@@ -80,6 +80,8 @@ def plot_landmark(axes, loc, cov = None, index = None,
         graphics.append(plot_cov_ellipse(loc,cov,nstd = 1,ax = axes,edgecolor = markerColor))
     if index is not None:
         graphics.append(axes.text(loc[0],loc[1],index, color = textColor))
+    if meshIndex is not None:
+        graphics.append(axes.text(loc[0],loc[1],meshIndex, color = textColor))
 
     return graphics
 

@@ -20,8 +20,8 @@ class map:
     
     def __init__(self,landmarks = []):
         #instance attributes
-        self.landmarks = []
-        self.classLabels = [] #will be filled laters
+        self.landmarks : list[landmark] = []
+        self.classLabels : list[str] = [] #will be filled laters
         self.addLandmarks(landmarks)
 
     def fillMapRandomly(self, N, classLabels, xrange, yrange, sigmarange = None):

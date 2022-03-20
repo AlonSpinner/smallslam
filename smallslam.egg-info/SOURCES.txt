@@ -1,0 +1,6 @@
+README.md
+setup.py
+smallslam.egg-info/PKG-INFO
+smallslam.egg-info/SOURCES.txt
+smallslam.egg-info/dependency_links.txt
+smallslam.egg-info/top_level.txt

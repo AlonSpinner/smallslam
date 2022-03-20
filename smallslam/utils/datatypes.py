@@ -53,7 +53,7 @@ class landmark_mesh:
         covq = np.zeros((N,2,2))
         covq[:,0,0] = np.interp(q,self.u,self.cov[:,0,0])
         covq[:,0,1] = np.interp(q,self.u,self.cov[:,0,1])
-        covq[:,1,0] = np.interp(q,self.u,self.cov[:,1,0])
+        covq[:,1,0] = covq[:,0,1] #symmetry. if bigger than 2D should have also transposed
         covq[:,1,1] = np.interp(q,self.u,self.cov[:,1,1])
         
         landmarks = [None] * N

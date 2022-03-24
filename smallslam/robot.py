@@ -11,7 +11,7 @@ from .utils.datatypes import pose2ToNumpy
 class robot:
     def __init__(self,odometry_noise = None, rgbd_noise = None,
                  FOV = 60.0*np.pi/180.0, range = 1.0, pose: gtsam.Pose2 = None, 
-                 ax = None, markerSize=200):
+                 ax = None):
 
         #input assumptions
         if odometry_noise is None:
@@ -39,9 +39,6 @@ class robot:
         #place holder for graphic handles
         self.graphic_rgbd = []
         self.graphic_car = []
-
-        if ax is not None:
-            self.plot(ax, markerSize = markerSize)
 
     def moveAndMeasureOdometrey(self,odom: gtsam.Pose2): 
         self.pose = self.pose.compose(odom)

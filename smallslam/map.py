@@ -49,7 +49,12 @@ class map:
 
     def addLandmarks(self,landmarks):
         self.landmarks.extend(landmarks)
+        self.reIndexifyLandmarks()
         self.defineClassLabelsFromLandmarks()
+
+    def reIndexifyLandmarks(self):
+        for i, lm in enumerate(self.landmarks):
+            self.landmarks[i] = landmark(i, lm.xy, lm.cov, lm.classLabel, lm.mesh_id)
 
     #goes over all landmarks to find classLabels.
     def defineClassLabelsFromLandmarks(self):

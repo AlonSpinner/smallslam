@@ -40,6 +40,8 @@ class robot:
         self.graphic_rgbd = []
         self.graphic_car = []
 
+        self.axes = ax
+
     def moveAndMeasureOdometrey(self,odom: gtsam.Pose2): 
         self.pose = self.pose.compose(odom)
         return self.noiseyOdomModel(odom)
@@ -70,7 +72,7 @@ class robot:
     def plot(self,ax: plt.Axes = None, markerSize = 200):
         if ax is None:
             try: 
-                ax = self.graphic_car.axes
+                ax = self.axes
             except:
                 print('no axes provided to robot previously via plot() or init()')
 

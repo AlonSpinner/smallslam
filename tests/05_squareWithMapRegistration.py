@@ -35,7 +35,7 @@ def scenario():
     rgbd_noise[0,0] = 0.1**2 #depth noise
     rgbd_noise[1,1] = np.radians(1)**2 #angular noise
 
-    car = robot(ax = axWorld, FOV = np.radians(90), markerSize = 50, 
+    car = robot(ax = axWorld, FOV = np.radians(90),
                       odometry_noise = odometry_noise, rgbd_noise = rgbd_noise)
     car.range = 10
     
@@ -112,7 +112,7 @@ with plt.ion():
         hist_ISAM2_error = np.vstack([hist_ISAM2_error,np.linalg.norm(xcurrent_ISAM2.translation()-car.pose.translation())])
 
         #plot and update
-        car.plot()
+        car.plot(markerSize = 50)
         axWorld.set_title(f"step {kk}")
         backend.plot(poses = True, landmarks = False, poses_Cov = True, poses_axis_length = 1.0)
 

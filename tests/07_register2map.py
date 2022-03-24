@@ -10,6 +10,9 @@ from smallslam.solver import solver
 from smallslam.robot import robot
 import gtsam
 from gtsam.symbol_shorthand import L, X
+from sgicp.clusters import cluster2
+from sgicp.sgicp import semantic_gicp
+import sgicp
 
 def buildMaps(plot=False):
 
@@ -209,7 +212,7 @@ def buildMaps(plot=False):
     observeableMap = copy.deepcopy(modelMap)
     lms = observeableMap.landmarks
     random.shuffle(lms)
-    observeableMap.landmarks = lms[::2]
+    observeableMap.landmarks = lms[::]
     observeableMap.fillMapRandomly(N = 20, classLabels = ['clutter'], xrange = (0.0,4.0), yrange=(0.0,3.0), sigmarange = (0.001,0.1))
     
     if plot:
@@ -222,8 +225,6 @@ def buildMaps(plot=False):
         plt.show()
 
     return modelMap, observeableMap
-
-
 def buildRobotAndOdom():
     odometry_noise = np.zeros((3,3))
     odometry_noise[0,0] = 0.01**2 #dx noise
@@ -239,16 +240,35 @@ def buildRobotAndOdom():
     odomForward = [gtsam.Pose2(0.1,0,0)]
     odomTurnLeft = [gtsam.Pose2(0,0,np.pi/8)]
     odomTurnRight = [gtsam.Pose2(0,0,-np.pi/8)]
-    odom = odomForward*10 + odomTurnRight*4 + odomForward*10 + odomTurnLeft*4 + odomForward*20 + odomTurnLeft*8
+    odom = odomForward*8 + odomTurnRight*4 + odomForward*10 + odomTurnLeft*4 + odomForward*20
     return car, odom
+def backendToCluster2(backend):
+    current_estimate = backend.calculateEstimate(bestEstimate = True)
+    marginals = gtsam.Marginals(backend.graph, current_estimate)
+    cov = []; loc = []
+    for seen_lm_index, seen_lm_classLabel in zip(backend.seen_landmarks["id"],backend.seen_landmarks["classLabel"]):
+        cov.append(marginals.marginalCovariance(L(seen_lm_index)))
+        loc.append(current_estimate.atPoint2(L(seen_lm_index)))
 
+    cluster = cluster2()
+    cluster.addPoints(np.array(loc).reshape(-1,2,1),np.array(cov),backend.seen_landmarks["classLabel"])
+    return cluster
+def mapToCluster2(m):
+    loc = []; cov = []; classLabels = []
+    for lm in m.landmarks:
+        loc.append(lm.xy)
+        cov.append(lm.cov)
+        classLabels.append(lm.classLabel)
+    cluster = cluster2()
+    cluster.addPoints(np.array(loc).reshape(-1,2,1),np.array(cov),classLabels)
+    return cluster
 
 modelMap, observeableMap = buildMaps(plot = False)
 car,gt_odom = buildRobotAndOdom()
 
 _, axSolver = spawnWorld()
 _, axWorld = spawnWorld()
-backend = solver(ax = axSolver, X0 = gtsam.Pose2(0,0,0) ,X0cov = car.odometry_noise/1000, semantics = observeableMap.exportSemantics())
+backend = solver(ax = axSolver, X0 = gtsam.Pose2(0,2.5,0) ,X0cov = car.odometry_noise/1000, semantics = observeableMap.exportSemantics())
 
 observeableMap.plot(ax = axWorld)
 with plt.ion():
@@ -267,6 +287,31 @@ with plt.ion():
         car.plot(ax = axWorld, markerSize = 10)
         
         plt.pause(0.1)
+
+backendCluster = backendToCluster2(backend)
+mapCluster = mapToCluster2(modelMap)
+
+invx_est, fmin, itr, df, i =  semantic_gicp(backendCluster.points, backendCluster.covariances, backendCluster.pointLabels, #source
+                                        mapCluster.points,mapCluster.covariances, mapCluster.pointLabels, #target
+                                        n_iter_max = 50,
+                                        x0 = np.zeros(3),
+                                        n = 2,
+                                        tol = 1e-6,
+                                        solverloss = 'cauchy', solver_f_scale = 2)
+
+ax, _ = sgicp.utils.plotting2D.prepAxes()
+backendCluster.plot(ax = ax, plotIndex = True,plotCov = True, markerSize = 30, markerColor = 'b')
+mapCluster.plot(ax = ax, plotIndex = True,plotCov = True, markerSize = 30, markerColor = 'r')
+ax.set_title('before ICP')
+
+x_est = sgicp.utils.transforms2D.inverse_x(invx_est)
+invEst_R, invEst_t = sgicp.utils.transforms2D.x_to_Rt(invx_est)
+backendCluster.transform(invEst_R,invEst_t, transformCov = True)
+
+ax, _ = sgicp.utils.plotting2D.prepAxes()
+backendCluster.plot(ax = ax, plotIndex = True,plotCov = True, markerSize = 30, markerColor = 'b')
+mapCluster.plot(ax = ax, plotIndex = True,plotCov = True, markerSize = 30, markerColor = 'r')
+ax.set_title('after ICP')
 
 plt.show()
 
